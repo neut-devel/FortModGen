@@ -1,0 +1,25 @@
+[module]
+
+name = "mymod"
+
+parameters = [
+  { name = "maxlen", type = "integer", value = 5 },
+  { name = "constant_key", type = "string", value = "abcde12345" },
+]
+
+derivedtypes = [ "example",  ]
+
+[module.example]
+
+comment = """
+This is an example type
+about which we have some commentary
+"""
+
+fields = [
+  { name = "mystr",  type = "string", size = 100, comment = "the string" },
+  { name = "myfloat",  type = "float" },
+  { name = "myfloat3",  type = "float", size = 3 },
+  { name = "mydouble3_4",  type = "double", size = [ 3, 4 ] },
+  { name = "mydouble3_maxlen",  type = "double", size = [ 3, "maxlen" ] },
+]
