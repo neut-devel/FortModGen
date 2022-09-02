@@ -155,3 +155,10 @@ inline void update(testtype_t const &inst){
 #endif
 
 ```
+
+## To Do Before V1
+
+* Add get/set methods exposing fortran string versions of the char arrays required for 03 C-interop
+* Add other types defined by iso_c_binding
+* Try and get rid of the globally accessible instance in the C/C++ interface and get/set a C_PTR version from a Fortran interface
+* Add std::string get/set methods to the struct wrapped in #ifdef `__cplusplus`
