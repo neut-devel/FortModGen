@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+#include "fmt/os.h"
+
 #include <map>
 
 std::map<FieldType, std::string> CFieldTypes = {
@@ -10,220 +12,174 @@ std::map<FieldType, std::string> CFieldTypes = {
     {FieldType::kDouble, "double"},
 };
 
-void CFileHeader(std::ostream &os, std::string const &modname) {
-  os << "#pragma once"
-     << "\n\n";
-  os << "extern \"C\" { "
-     << "\n\n";
+void ModuleStructsHeader(fmt::ostream &os, std::string const &modname) {
+  os.print("#pragma once\n\n#ifdef __cplusplus\nextern \"C\" {{\n#endif\n\n");
 }
 
-void CModuleParameters(std::ostream &os,
-                       ParameterFields const &ParameterFieldDescriptors) {
+void ModuleStructsParameters(fmt::ostream &os,
+                             ParameterFields const &ParameterFieldDescriptors) {
   for (auto const &ppair : ParameterFieldDescriptors) {
     auto const &p = ppair.second;
     std::string comment = SanitizeComment(p.comment, "//");
     if (comment.length()) {
-      os << "//" << comment << std::endl;
+      os.print("//{}\n", comment);
     }
     if (p.is_string()) {
-      os << CFieldTypes[p.type] << "* const " << p.name << " = \"" << p.value
-         << "\""
-         << ";" << std::endl;
+      os.print("#define {} \"{}\"\n", p.name, p.value);
     } else {
-      os << CFieldTypes[p.type] << " const " << p.name << " = " << p.value
-         << ";" << std::endl;
+      os.print("#define {} {}\n", p.name, p.value);
     }
-    os << std::endl;
+    os.print("\n");
   }
 }
 
-void CDerivedTypeHeader(std::ostream &os, std::string const &dtypename,
-                        std::string comment) {
+void ModuleStructsDerivedTypeHeader(fmt::ostream &os,
+                                    std::string const &dtypename,
+                                    std::string comment) {
 
   comment = SanitizeComment(comment, "//");
   if (comment.length()) {
-    os << "//" << comment << std::endl;
+    os.print("//{}\n", comment);
   }
-  os << "extern struct {\n\n";
+  os.print("extern struct {}_t {{\n\n", dtypename);
 }
 
-void CDerivedTypeField(std::ostream &os, FieldDescriptor const &fd) {
+void ModuleStructsDerivedTypeField(fmt::ostream &os,
+                                   FieldDescriptor const &fd) {
   std::string comment = SanitizeComment(fd.comment, "  //");
   if (comment.length()) {
-    os << "  //" << comment << std::endl;
+    os.print("  //{}\n", comment);
   }
-  os << "  " << CFieldTypes[fd.type] << " " << fd.name;
+  os.print("  {} {}", CFieldTypes[fd.type], fd.name);
 
   if (fd.is_array()) {
     for (int i = fd.size.size(); i > 0; --i) {
-      auto dim = fd.size[i - 1];
-      if (dim.index() == FieldDescriptor::kSizeString) {
-        os << "[" << std::get<FieldDescriptor::kSizeString>(dim) << "]";
-      } else {
-        os << "[" << std::get<FieldDescriptor::kSizeInt>(dim) << "]";
-      }
+      os.print("[{}]", fd.get_dim_size_str(i - 1));
     }
   }
-
-  os << ";\n";
+  os.print(";\n");
 }
 
-void CDerivedTypeFooter(std::ostream &os, std::string const &dtypename) {
-  os << "\n} " << dtypename << ";\n\n";
+void ModuleStructsDerivedTypeFooter(fmt::ostream &os,
+                                    std::string const &dtypename) {
+  os.print("\n}} {} ;\n\n", dtypename);
 }
 
-void CFileFooter(std::ostream &os, std::string const &modname) {
-  os << "} "
-     << "\n";
+void ModuleStructsFooter(fmt::ostream &os, std::string const &modname) {
+  os.print("#ifdef __cplusplus\n}}\n#endif\n");
 }
+
+void CInterfaceHeader(fmt::ostream &os) {
+  os.print("\n#ifndef __cplusplus\n#include <stdlib.h>\n#include <string.h>\n");
+}
+
+void CInterfaceDerivedTypeHeader(fmt::ostream &os,
+                                 std::string const &dtypename) {
+  os.print(R"(
+//C Interface for {0}
+inline struct {0}_t *alloc_{0}(){{
+  return malloc(sizeof(struct {0}_t));
+}}
+
+inline void free_{0}(struct {0}_t *inst){{
+  if(inst != NULL){{
+    free(inst);
+  }}
+}}
+)",
+           dtypename);
+}
+
+void CInterfaceDerivedTypeDetails(fmt::ostream &os,
+                                  std::string const &dtypename,
+                                  DerivedType const &dt,
+                                  ParameterFields const &parameters) {
+
+  os.print("inline void copy_{0}(struct {0}_t *inst){{\n", dtypename);
+  for (auto const &fd : dt.fields) {
+    if (fd.is_array()) {
+      os.print("  memcpy(inst->{1},{0}.{1},sizeof({2})*{3});\n", dtypename,
+               fd.name, CFieldTypes[fd.type], fd.get_size(parameters));
+    } else {
+      os.print("  inst->{1} = {0}.{1};\n", dtypename, fd.name);
+    }
+  }
+  os.print("}}\n\n");
+
+  os.print("inline void update_{0}(struct {0}_t const *inst){{\n", dtypename);
+  for (auto const &fd : dt.fields) {
+    if (fd.is_array()) {
+      os.print("  memcpy({0}.{1}, inst->{1},sizeof({2})*{3});\n", dtypename,
+               fd.name, CFieldTypes[fd.type], fd.get_size(parameters));
+    } else {
+      os.print("  {0}.{1} = inst->{1};\n", dtypename, fd.name);
+    }
+  }
+  os.print("}}\n\n");
+}
+
+void CInterfaceFooter(fmt::ostream &os) { os.print("\n#else\n"); }
+
+void CPPInterfaceHeader(fmt::ostream &os) {
+  os.print(R"(namespace FortMod {{
+)");
+}
+
+void CPPInterfaceDerivedType(fmt::ostream &os, std::string const &dtypename) {
+  os.print(R"(
+//C++ Interface for {0}
+namespace {0}IF {{
+
+inline {0}_t copy(){{
+  return {0};
+}}
+
+inline void update({0}_t const &inst){{
+  {0} = inst;
+}}
+
+}}
+
+)",
+           dtypename);
+}
+
+void CPPInterfaceFooter(fmt::ostream &os) { os.print("}}\n#endif\n"); }
 
 void GenerateCInterface(std::string const &fname, std::string const &modname,
                         ParameterFields const &parameters,
                         DerivedTypes const &dtypes) {
 
-  std::ofstream out(fname);
+  auto out = fmt::output_file(fname);
 
-  CFileHeader(out, modname);
+  ModuleStructsHeader(out, modname);
 
-  CModuleParameters(out, parameters);
+  ModuleStructsParameters(out, parameters);
 
   for (auto const &dt : dtypes) {
 
-    CDerivedTypeHeader(out, dt.first, dt.second.comment);
+    ModuleStructsDerivedTypeHeader(out, dt.first, dt.second.comment);
 
     for (auto const &fd : dt.second.fields) {
 
-      CDerivedTypeField(out, fd);
+      ModuleStructsDerivedTypeField(out, fd);
     }
 
-    CDerivedTypeFooter(out, dt.first);
+    ModuleStructsDerivedTypeFooter(out, dt.first);
   }
 
-  CFileFooter(out, modname);
+  ModuleStructsFooter(out, modname);
 
-  out << "\n\n#ifdef __cplusplus" << std::endl << std::endl;
-  out << "#include <cstring>" << std::endl;
-  out << "#include <algorithm>" << std::endl << std::endl;
-  out << "namespace " << modname << " {" << std::endl;
-
+  CInterfaceHeader(out);
   for (auto const &dt : dtypes) {
-    out << "struct " << dt.first << "IFace {" << std::endl;
-
-    for (auto const &fd : dt.second.fields) {
-
-      if (fd.is_string()) {
-        int string_capacity = std::get<FieldDescriptor::kSizeInt>(fd.size[0]);
-
-        out << "  // Accessors for " << fd.name << std::endl;
-        out << "  static char const * get_" << fd.name << "() {" << std::endl;
-        out << "    return " << dt.first << "." << fd.name << ";" << std::endl;
-        out << "  }" << std::endl;
-
-        out << "  static int get_" << fd.name << "_capacity() {" << std::endl;
-        out << "    return " << string_capacity << ";" << std::endl;
-        out << "  }" << std::endl;
-
-        out << "  static void set_" << fd.name << "(" << CFieldTypes[fd.type]
-            << " const *x, int n) {" << std::endl;
-        out << "    if((n+1) > " << string_capacity << "){" << std::endl;
-        out << "      std::cout << \"[WARNING]: When setting " << fd.name
-            << ", a cstr of length: \" << n " << std::endl;
-        out << "                << \" was passed, but " << fd.name
-            << " only has a capacity of: \" " << std::endl;
-        out << "                << string_capacity << \". It will be "
-               "truncated.\" <<  std::endl;"
-            << std::endl;
-        out << "    }" << std::endl;
-        out << "    std::memset(" << dt.first << "." << fd.name
-            << ", x, std::min(n+1," << string_capacity << "));" << std::endl;
-        out << "  }" << std::endl << std::endl;
-
-      } else if (fd.is_array()) {
-
-        out << "  // Accessors for " << fd.name << std::endl;
-        out << "  static int get_" << fd.name << "_ndims() { return "
-            << fd.size.size() << "; } " << std::endl;
-
-        out << "  static int const * get_" << fd.name << "_shape() { "
-            << std::endl;
-        out << "    static int shape[] = {";
-
-        for (int i = fd.size.size(); i > 0; --i) {
-          out << fd.get_dim_size(i - 1, parameters) << ((i == 1) ? "" : ", ");
-        }
-
-        out << "};" << std::endl;
-        out << "    return shape; " << std::endl;
-        out << "  } " << std::endl;
-
-        out << "  static " << CFieldTypes[fd.type] << " const ";
-
-        for (int i = fd.size.size(); i > 0; --i) {
-          out << "*";
-        }
-
-        out << " get_" << fd.name << "() {" << std::endl;
-        out << "    return " << dt.first << "." << fd.name << ";" << std::endl;
-        out << "  }" << std::endl << std::endl;
-
-        out << "  static void set_" << fd.name << "(" << CFieldTypes[fd.type]
-            << " const ";
-        for (int i = fd.size.size(); i > 0; --i) {
-          out << "*";
-        }
-        out << " x) {" << std::endl;
-
-        std::string indent = "    ";
-        char varname = 'i';
-        for (int i = fd.size.size(); i > 0; --i) {
-          int dimsize = fd.get_dim_size(i - 1, parameters);
-          out << indent << "for(int " << varname << " = 0; " << varname << " < "
-              << dimsize << "; ++" << varname << ") {" << std::endl;
-
-          indent += "  ";
-          varname++;
-        }
-
-        out << indent << dt.first << "." << fd.name;
-
-        varname = 'i';
-        for (int i = fd.size.size(); i > 0; --i) {
-          out << "[" << varname << "]";
-          varname++;
-        }
-
-        out << " = x";
-        varname = 'i';
-        for (int i = fd.size.size(); i > 0; --i) {
-          out << "[" << varname << "]";
-          varname++;
-        }
-
-        out << ";" << std::endl;
-
-        for (int i = fd.size.size(); i > 0; --i) {
-          indent = indent.substr(0, indent.size() - 2);
-          out << indent << "}" << std::endl;
-        }
-
-        out << "  }" << std::endl << std::endl;
-
-      } else {
-        out << "  // Accessors for " << fd.name << std::endl;
-        out << "  static " << CFieldTypes[fd.type] << " get_" << fd.name
-            << "() {" << std::endl;
-        out << "    return " << dt.first << "." << fd.name << ";" << std::endl;
-        out << "  }" << std::endl;
-
-        out << "  static void set_" << fd.name << "(" << CFieldTypes[fd.type]
-            << " const &x) {" << std::endl;
-        out << "    " << dt.first << "." << fd.name << " = x;" << std::endl;
-        out << "  }" << std::endl << std::endl;
-      }
-    }
-
-    out << "};" << std::endl << std::endl;
+    CInterfaceDerivedTypeHeader(out, dt.first);
+    CInterfaceDerivedTypeDetails(out, dt.first, dt.second, parameters);
   }
+  CInterfaceFooter(out);
 
-  out << "}\n#endif\n";
+  CPPInterfaceHeader(out);
+  for (auto const &dt : dtypes) {
+    CPPInterfaceDerivedType(out, dt.first);
+  }
+  CPPInterfaceFooter(out);
 }

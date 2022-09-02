@@ -1,0 +1,22 @@
+[module]
+
+name = "testmod"
+
+parameters = [
+  { name = "intpar", type = "integer", value = 2 },
+  { name = "stringpar", type = "string", value = "abcde12345" },
+  { name = "floatpar", type = "float", value = 1.234 },
+]
+
+derivedtypes = [ "testtype",  ]
+
+[module.testtype]
+fields = [
+  { name = "fstr",  type = "string", size = 100 },
+  { name = "ffloat",  type = "float" },
+  { name = "fdouble",  type = "double"},
+  { name = "ffloata",  type = "float", size = 5 },
+  { name = "ffloatapar",  type = "float", size = "intpar" },
+  { name = "ffloat2a",  type = "float", size = [3,5] },
+  { name = "ffloat2apar",  type = "float", size = ["intpar", 5] },
+]

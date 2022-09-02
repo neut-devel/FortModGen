@@ -1,94 +1,90 @@
 #include "FortranModuleGenerator.h"
 #include "utils.h"
 
+#include "fmt/os.h"
+
 #include <map>
 
 std::map<FieldType, std::string> FortranFieldTypes = {
-    {FieldType::kInteger, "integer(kind=C_INT)"},
-    {FieldType::kString, "character(kind=C_CHAR)"},
-    {FieldType::kCharacter, "character(kind=C_CHAR)"},
-    {FieldType::kFloat, "real(kind=C_FLOAT)"},
-    {FieldType::kDouble, "real(kind=C_DOUBLE)"},
+    {FieldType::kInteger, "integer"},     {FieldType::kString, "character"},
+    {FieldType::kCharacter, "character"}, {FieldType::kFloat, "real"},
+    {FieldType::kDouble, "real"},
 };
 
-void FortranFileHeader(std::ostream &os, std::string const &modname) {
-  os << "module " << modname << "\n";
-  os << "  use iso_c_binding"
-     << "\n\n";
+std::map<FieldType, std::string> FortranFieldKinds = {
+    {FieldType::kInteger, "C_INT"},    {FieldType::kString, "C_CHAR"},
+    {FieldType::kCharacter, "C_CHAR"}, {FieldType::kFloat, "C_FLOAT"},
+    {FieldType::kDouble, "C_DOUBLE"},
+};
+
+void FortranFileHeader(fmt::ostream &os, std::string const &modname) {
+  os.print("module {}\n  use iso_c_binding\n\n", modname);
 }
 
-void FortranModuleParameters(std::ostream &os,
+void FortranModuleParameters(fmt::ostream &os,
                              ParameterFields const &ParameterFieldDescriptors) {
   for (auto const &ppair : ParameterFieldDescriptors) {
     auto const &p = ppair.second;
     std::string comment = SanitizeComment(p.comment, "  !");
     if (comment.length()) {
-      os << "  !" << comment << std::endl;
+      os.print("  !{}\n", comment);
     }
-    if (p.type == FieldType::kString) {
-      os << "  " << FortranFieldTypes[p.type]
-         << ",len=*), parameter :: " << p.name << " = \"" << p.value << "\""
-         << std::endl;
+    if (p.is_string()) {
+      os.print("  {}(kind={},len=*), parameter :: {} = \"{}\"\n",
+               FortranFieldTypes[p.type], FortranFieldKinds[p.type], p.name,
+               p.value);
     } else {
-      os << "  " << FortranFieldTypes[p.type] << ", parameter :: " << p.name
-         << " = " << p.value << std::endl;
+      os.print("  {}(kind={}), parameter :: {} = {}\n",
+               FortranFieldTypes[p.type], FortranFieldKinds[p.type], p.name,
+               p.value);
     }
   }
-  os << std::endl;
+  os.print("\n");
 }
 
-void FortranDerivedTypeHeader(std::ostream &os, std::string const &dtypename,
+void FortranDerivedTypeHeader(fmt::ostream &os, std::string const &dtypename,
                               std::string comment) {
 
   comment = SanitizeComment(comment, "  !");
   if (comment.length()) {
-    os << "  !" << comment << std::endl;
+    os.print("  !{}\n", comment);
   }
-  os << "  type, bind(C) :: t_" << dtypename << "\n";
+  os.print("  type, bind(C) :: t_{}\n", dtypename);
 }
 
-void FortranDerivedTypeField(std::ostream &os, FieldDescriptor const &fd) {
+void FortranDerivedTypeField(fmt::ostream &os, FieldDescriptor const &fd) {
 
   std::string comment = SanitizeComment(fd.comment, "    !");
   if (comment.length()) {
-    os << "    !" << comment << std::endl;
+    os.print("    !{}\n", comment);
   }
-  os << "    ";
-  os << FortranFieldTypes[fd.type];
+  os.print("    {}(kind={})", FortranFieldTypes[fd.type],
+           FortranFieldKinds[fd.type]);
   if (fd.is_array()) {
-    os << ", dimension(";
+    os.print(", dimension(");
     for (int i = 0; i < fd.size.size(); ++i) {
-      auto dim = fd.size[i];
-      if (dim.index() == FieldDescriptor::kSizeString) {
-        os << std::get<FieldDescriptor::kSizeString>(dim)
-           << ((i + 1 == fd.size.size()) ? "" : ", ");
-      } else {
-        os << std::get<FieldDescriptor::kSizeInt>(dim)
-           << ((i + 1 == fd.size.size()) ? "" : ", ");
-      }
+      os.print("{}{}", fd.get_dim_size_str(i),
+               ((i + 1 == fd.size.size()) ? "" : ", "));
     }
-    os << ")";
+    os.print(")");
   }
-  os << " :: " << fd.name;
-  os << "\n";
+  os.print(" :: {}\n", fd.name);
 }
 
-void FortranDerivedTypeFooter(std::ostream &os, std::string const &dtypename) {
-  os << "\n  end type t_" << dtypename << "\n\n";
-  os << "  type (t_" << dtypename << "), bind(C) :: " << dtypename << "\n\n";
+void FortranDerivedTypeFooter(fmt::ostream &os, std::string const &dtypename) {
+  os.print("\n  end type t_{0}\n\n  type (t_{0}), bind(C) :: {0}\n\n",
+           dtypename);
 }
 
-void FortranFileFooter(std::ostream &os, std::string const &modname) {
-  os << "  save"
-     << "\n";
-  os << "end module " << modname << "\n";
+void FortranFileFooter(fmt::ostream &os, std::string const &modname) {
+  os.print("  save\nend module {}\n", modname);
 }
 
 void GenerateFortranModule(std::string const &fname, std::string const &modname,
                            ParameterFields const &parameters,
                            DerivedTypes const &dtypes) {
 
-  std::ofstream out(fname);
+  auto out = fmt::output_file(fname);
 
   FortranFileHeader(out, modname);
 

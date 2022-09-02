@@ -1,154 +1,157 @@
 # FortModGen
 
-Generate fortran module files and C/C++ interfaces to the same data structure
+Can be used to generate consistent Fortran and C/C++ data structures from a toml configuration file for global memory-based interop (not recommended, but we're stuck with it in NEUT). Also generates a simple C/C++ object-ified interface for each data structure.
 
-# Example Usage
+## Build
 
-`fortmodgen -i config/example.toml -o testmod`
-
-produces: `testmod.f90` and `testmod.h`.
-
+Requires a C++17-capable compiler.
 
 ```
-!testmod.f90
-module mymod
+git clone https://github.com/neut-devel/FortModGen.git
+mkdir build && cd build
+cmake ../FortModGen
+make install -j4
+```
+
+## Example Usage
+
+From a `toml` descriptor file, `config.toml` as below:
+
+```toml
+[module]
+
+name = "testmod"
+
+parameters = [
+  { name = "intpar", type = "integer", value = 2 },
+  { name = "stringpar", type = "string", value = "abcde12345" },
+  { name = "floatpar", type = "float", value = 1.234 },
+]
+
+derivedtypes = [ "testtype",  ]
+
+[module.testtype]
+fields = [
+  { name = "fstr",  type = "string", size = 100 },
+  { name = "ffloat",  type = "float" },
+  { name = "fdouble",  type = "double"},
+  { name = "ffloata",  type = "float", size = 5 },
+  { name = "ffloatapar",  type = "float", size = "intpar" },
+  { name = "ffloat2a",  type = "float", size = [3,5] },
+  { name = "ffloat2apar",  type = "float", size = ["intpar", 5] },
+]
+
+```
+
+Executing `fortmodgen -i config.toml -o testmod` would produce: `testmod.f90` and `testmod.h`:
+
+```fortran
+module testmod
   use iso_c_binding
 
-  character(kind=C_CHAR),len=*), parameter :: constant_key = "abcde12345"
-  integer(kind=C_INT), parameter :: maxlen = 5
+  real(kind=C_FLOAT), parameter :: floatpar = 1.234000
+  character(kind=C_CHAR,len=*), parameter :: stringpar = "abcde12345"
+  integer(kind=C_INT), parameter :: intpar = 2
 
-  !This is an example type
-  !about which we have some commentary
-  !
-  type, bind(C) :: t_example
-    !the string
-    character(kind=C_CHAR), dimension(100) :: mystr
-    real(kind=C_FLOAT) :: myfloat
-    real(kind=C_FLOAT), dimension(3) :: myfloat3
-    real(kind=C_DOUBLE), dimension(3, 4) :: mydouble3_4
-    real(kind=C_DOUBLE), dimension(3, maxlen) :: mydouble3_maxlen
+  type, bind(C) :: t_testtype
+    character(kind=C_CHAR), dimension(100) :: fstr
+    real(kind=C_FLOAT) :: ffloat
+    real(kind=C_DOUBLE) :: fdouble
+    real(kind=C_FLOAT), dimension(5) :: ffloata
+    real(kind=C_FLOAT), dimension(intpar) :: ffloatapar
+    real(kind=C_FLOAT), dimension(3, 5) :: ffloat2a
+    real(kind=C_FLOAT), dimension(intpar, 5) :: ffloat2apar
 
-  end type t_example
+  end type t_testtype
 
-  type (t_example), bind(C) :: example
+  type (t_testtype), bind(C) :: testtype
 
   save
-end module mymod
+end module testmod
 
 ```
 
-```
-//testmod.h
+```c++
 #pragma once
 
-extern "C" { 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-char* const constant_key = "abcde12345";
+#define floatpar 1.234000
 
-int const maxlen = 5;
+#define stringpar "abcde12345"
 
-//This is an example type
-//about which we have some commentary
-//
-extern struct {
+#define intpar 2
 
-  //the string
-  char mystr[100];
-  float myfloat;
-  float myfloat3[3];
-  double mydouble3_4[4][3];
-  double mydouble3_maxlen[maxlen][3];
+extern struct testtype_t {
 
-} example;
+  char fstr[100];
+  float ffloat;
+  double fdouble;
+  float ffloata[5];
+  float ffloatapar[intpar];
+  float ffloat2a[5][3];
+  float ffloat2apar[5][intpar];
 
-} 
-
+} testtype ;
 
 #ifdef __cplusplus
+}
+#endif
 
-#include <cstring>
-#include <algorithm>
+#ifndef __cplusplus
+#include <stdlib.h>
+#include <string.h>
 
-namespace mymod {
-struct exampleIFace {
-  // Accessors for mystr
-  static char const * get_mystr() {
-    return example.mystr;
-  }
-  static int get_mystr_capacity() {
-    return 100;
-  }
-  static void set_mystr(char const *x, int n) {
-    if((n+1) > 100){
-      std::cout << "[WARNING]: When setting mystr, a cstr of length: " << n 
-                << " was passed, but mystr only has a capacity of: " 
-                << string_capacity << ". It will be truncated." <<  std::endl;
-    }
-    std::memset(example.mystr, x, std::min(n+1,100));
-  }
+//C Interface for testtype
+inline struct testtype_t *alloc_testtype(){
+  return malloc(sizeof(struct testtype_t));
+}
 
-  // Accessors for myfloat
-  static float get_myfloat() {
-    return example.myfloat;
+inline void free_testtype(struct testtype_t *inst){
+  if(inst != NULL){
+    free(inst);
   }
-  static void set_myfloat(float const &x) {
-    example.myfloat = x;
-  }
+}
+inline void copy_testtype(struct testtype_t *inst){
+  memcpy(inst->fstr,testtype.fstr,sizeof(char)*100);
+  inst->ffloat = testtype.ffloat;
+  inst->fdouble = testtype.fdouble;
+  memcpy(inst->ffloata,testtype.ffloata,sizeof(float)*5);
+  memcpy(inst->ffloatapar,testtype.ffloatapar,sizeof(float)*2);
+  memcpy(inst->ffloat2a,testtype.ffloat2a,sizeof(float)*15);
+  memcpy(inst->ffloat2apar,testtype.ffloat2apar,sizeof(float)*10);
+}
 
-  // Accessors for myfloat3
-  static int get_myfloat3_ndims() { return 1; } 
-  static int const * get_myfloat3_shape() { 
-    static int shape[] = {3};
-    return shape; 
-  } 
-  static float const * get_myfloat3() {
-    return example.myfloat3;
-  }
+inline void update_testtype(struct testtype_t const *inst){
+  memcpy(testtype.fstr, inst->fstr,sizeof(char)*100);
+  testtype.ffloat = inst->ffloat;
+  testtype.fdouble = inst->fdouble;
+  memcpy(testtype.ffloata, inst->ffloata,sizeof(float)*5);
+  memcpy(testtype.ffloatapar, inst->ffloatapar,sizeof(float)*2);
+  memcpy(testtype.ffloat2a, inst->ffloat2a,sizeof(float)*15);
+  memcpy(testtype.ffloat2apar, inst->ffloat2apar,sizeof(float)*10);
+}
 
-  static void set_myfloat3(float const * x) {
-    for(int i = 0; i < 3; ++i) {
-      example.myfloat3[i] = x[i];
-    }
-  }
 
-  // Accessors for mydouble3_4
-  static int get_mydouble3_4_ndims() { return 2; } 
-  static int const * get_mydouble3_4_shape() { 
-    static int shape[] = {4, 3};
-    return shape; 
-  } 
-  static double const ** get_mydouble3_4() {
-    return example.mydouble3_4;
-  }
+#else
+namespace FortMod {
 
-  static void set_mydouble3_4(double const ** x) {
-    for(int i = 0; i < 4; ++i) {
-      for(int j = 0; j < 3; ++j) {
-        example.mydouble3_4[i][j] = x[i][j];
-      }
-    }
-  }
+//C++ Interface for testtype
+namespace testtypeIF {
 
-  // Accessors for mydouble3_maxlen
-  static int get_mydouble3_maxlen_ndims() { return 2; } 
-  static int const * get_mydouble3_maxlen_shape() { 
-    static int shape[] = {5, 3};
-    return shape; 
-  } 
-  static double const ** get_mydouble3_maxlen() {
-    return example.mydouble3_maxlen;
-  }
+inline testtype_t copy(){
+  return testtype;
+}
 
-  static void set_mydouble3_maxlen(double const ** x) {
-    for(int i = 0; i < 5; ++i) {
-      for(int j = 0; j < 3; ++j) {
-        example.mydouble3_maxlen[i][j] = x[i][j];
-      }
-    }
-  }
+inline void update(testtype_t const &inst){
+  testtype = inst;
+}
 
-};
+}
 
 }
 #endif
+
 ```

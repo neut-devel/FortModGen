@@ -37,6 +37,14 @@ struct FieldDescriptor {
   std::set<AttributeType> attributes;
   std::string comment;
 
+  int get_size(ParameterFields const &parameters) const {
+    int full_size = 1;
+    for(int i = 0; i < size.size(); ++i){
+      full_size *= get_dim_size(i, parameters);
+    }
+    return full_size;
+  }
+
   int get_dim_size(int i, ParameterFields const &parameters) const {
     if (i >= size.size()) {
       std::cout << "[ERROR]: When accessing dimension size for field: " << name
@@ -50,6 +58,20 @@ struct FieldDescriptor {
           parameters.at(std::get<FieldDescriptor::kSizeString>(dim)).value);
     } else {
       return std::get<FieldDescriptor::kSizeInt>(dim);
+    }
+  }
+  std::string get_dim_size_str(int i) const {
+    if (i >= size.size()) {
+      std::cout << "[ERROR]: When accessing dimension size for field: " << name
+                << " asked for size of dimension: " << i << ", but " << name
+                << " only has " << size.size() << " dimensions." << std::endl;
+      abort();
+    }
+    auto const &dim = size[i];
+    if (dim.index() == FieldDescriptor::kSizeString) {
+      return std::get<FieldDescriptor::kSizeString>(dim);
+    } else {
+      return std::to_string(std::get<FieldDescriptor::kSizeInt>(dim));
     }
   }
 

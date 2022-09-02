@@ -24,7 +24,7 @@
 
 cmake_minimum_required (VERSION 3.14 FATAL_ERROR)
 
-project(FortModGen VERSION 0.1.0 LANGUAGES C CXX Fortran)
+project(FortModGen VERSION 0.9.0 LANGUAGES C CXX Fortran)
 
 set (FortModGen_VERSION ${PROJECT_VERSION})
 
@@ -93,10 +93,37 @@ CPMFindPackage(
   GIT_TAG v3.7.1
 )
 
+CPMFindPackage(
+    NAME fmt
+    GIT_TAG 8.1.1
+    GITHUB_REPOSITORY fmtlib/fmt
+)
+
 add_subdirectory(${CMAKE_SOURCE_DIR}/app)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 
-# if(FORTMODGEN_TEST_ENABLED)
-#   add_subdirectory(${CMAKE_SOURCE_DIR}/test)
-# endif()
+if(FORTMODGEN_TEST_ENABLED)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/test)
+endif()
 
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/FortModGenConfig.cmake.in FortModGenConfig.cmake
+  INSTALL_DESTINATION 
+    /this/is/ignored/for/some/reason/thanks/kitware
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+
+install(FILES 
+    ${CMAKE_BINARY_DIR}/FortModGenConfig.cmake 
+    ${CMAKE_SOURCE_DIR}/cmake/Modules/FortModGen.cmake 
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
+
+write_basic_package_version_file(${CMAKE_INSTALL_PREFIX}/cmake/FortModGenConfig.cmake
+  VERSION ${FortModGen_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+
+install(EXPORT FortModGen-targets
+  FILE FortModGenTargets.cmake
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake
+)
