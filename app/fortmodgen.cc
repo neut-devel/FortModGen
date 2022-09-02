@@ -54,8 +54,8 @@ int main(int argc, char const *argv[]) {
   auto dtypenames =
       toml::find<std::vector<std::string>>(fmod_descriptor, "derivedtypes");
 
-  auto parameters = toml::find<std::vector<ParameterFieldDescriptor>>(
-      fmod_descriptor, "parameters");
+  auto parameters = toml::find_or<std::vector<ParameterFieldDescriptor>>(
+      fmod_descriptor, "parameters", {});
 
   std::cout << "Found module descriptor for module: " << modname << " with "
             << dtypenames.size() << " defined derived types and "
