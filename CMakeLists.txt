@@ -59,7 +59,7 @@ elseif(NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 endif()
 
-LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
 #### RPATH handling #####
 
@@ -99,24 +99,26 @@ CPMFindPackage(
     GITHUB_REPOSITORY fmtlib/fmt
 )
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/app)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src)
+add_subdirectory(app)
+add_subdirectory(src)
 
 if(FORTMODGEN_TEST_ENABLED)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/test)
+  add_subdirectory(test)
 endif()
+
+include(cmake/Modules/FortModGen.cmake)
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/Modules/FortModGenConfig.cmake.in FortModGenConfig.cmake
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FortModGenConfig.cmake.in FortModGenConfig.cmake
   INSTALL_DESTINATION 
     /this/is/ignored/for/some/reason/thanks/kitware
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 install(FILES 
-    ${CMAKE_BINARY_DIR}/FortModGenConfig.cmake 
-    ${CMAKE_SOURCE_DIR}/cmake/Modules/FortModGen.cmake 
+    ${CMAKE_CURRENT_BINARY_DIR}/FortModGenConfig.cmake 
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FortModGen.cmake 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
 
 write_basic_package_version_file(${CMAKE_INSTALL_PREFIX}/cmake/FortModGenConfig.cmake
