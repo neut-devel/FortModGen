@@ -103,7 +103,7 @@ void FortranDerivedTypeFieldData(fmt::ostream &os, std::string const &dtypename,
 
   if (fd.is_string()) { // put a C_NULL_CHAR at the end of any string array
     os.print("  data {0}%{1}({2}:{2})/C_NULL_CHAR/\n", dtypename, fd.name,
-             fd.get_size(parameters)+1);
+             fd.get_size(parameters) + 1);
     return;
   }
 
@@ -205,8 +205,10 @@ void GenerateFortranModule(std::string const &fname, std::string const &modname,
 
       FortranDerivedTypeFieldData(out, dt.first, fd, parameters);
     }
+  }
 
-    out.print("\n  save\n  contains");
+  out.print("\n  save\n  contains\n");
+  for (auto const &dt : dtypes) {
 
     // instance data initialization must come after the instance declaration
     for (auto const &fd : dt.second.fields) {
