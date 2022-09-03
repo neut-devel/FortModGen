@@ -40,32 +40,16 @@ from<ParameterFieldDescriptor>::from_toml(const value &v) {
 
   f.comment = find_or<std::string>(v, "comment", "");
 
-  switch (f.type) {
-  case FieldType::kInteger: {
-    auto rval = find<int>(v, "value");
-    f.value = std::to_string(rval);
-    break;
-  }
-  case FieldType::kString: {
-    f.value = find<std::string>(v, "value");
-    break;
-  }
-  case FieldType::kCharacter: {
-    f.value = find<std::string>(v, "value");
-    break;
-  }
-  case FieldType::kFloat: {
-    auto rval = find<float>(v, "value");
-    f.value = std::to_string(rval);
-    break;
-  }
-  case FieldType::kDouble: {
-    auto rval = find<double>(v, "value");
-    f.value = std::to_string(rval);
-    break;
-  }
-  }
+  auto val = find(v, "value");
 
+  if(val.is_string()){
+    f.value = get<std::string>(val);
+  } else if(val.is_floating()){
+    f.value = std::to_string(get<double>(val));
+  } else if(val.is_integer()){
+    f.value = std::to_string(get<int>(val));
+  }
+  
   return f;
 }
 
