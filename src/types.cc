@@ -84,6 +84,13 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
   if (v.contains("size")) {
     auto size_element = find(v, "size");
     if (size_element.is_array()) {
+      if (f.is_string() && (size_element.as_array().size() > 1)) {
+        std::cout << "[ERROR]: We cannot currently handle arrays of strings, "
+                     "please submit an issue if this is a problem."
+                  << std::endl;
+        abort();
+      }
+
       size_t ind = 0;
       for (auto const &el : size_element.as_array()) {
         if (el.is_integer()) {
@@ -103,6 +110,36 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
         f.size.emplace_back(get<int>(size_element));
       } else if (size_element.is_string()) {
         f.size.emplace_back(get<std::string>(size_element));
+      } else {
+        std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
+                  << "\", found invalid size element type " << std::endl;
+        abort();
+      }
+    }
+  }
+
+  if (v.contains("data")) {
+    auto data_element = find(v, "data");
+    if (data_element.is_array()) {
+      size_t ind = 0;
+      for (auto const &el : data_element.as_array()) {
+        if (el.is_integer()) {
+          f.data.emplace_back(get<int>(el));
+        } else if (el.is_floating()) {
+          f.data.emplace_back(get<double>(el));
+        } else {
+          std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
+                    << "\", found invalid size element type at index: " << ind
+                    << std::endl;
+          abort();
+        }
+        ind++;
+      }
+    } else {
+      if (data_element.is_integer()) {
+        f.data.emplace_back(get<int>(data_element));
+      } else if (data_element.is_floating()) {
+        f.data.emplace_back(get<double>(data_element));
       } else {
         std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
                   << "\", found invalid size element type " << std::endl;
@@ -167,6 +204,6 @@ std::ostream &operator<<(std::ostream &os, FieldDescriptor const &fd) {
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os, ParameterFieldDescriptor const &fd){
+std::ostream &operator<<(std::ostream &os, ParameterFieldDescriptor const &fd) {
   return os << fd.type << ": " << fd.name << " = " << fd.value;
 }

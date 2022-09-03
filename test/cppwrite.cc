@@ -14,9 +14,7 @@ void cppwrite() {
   std::cout << "Writing from C++" << std::endl;
   std::cout << "<<<<<<<<<<<<<<<<" << std::endl;
 
-  std::string tmpstr = "string from C++";
-  std::memset(myinst.fstr, '\0', 100);
-  std::memcpy(myinst.fstr, tmpstr.c_str(), tmpstr.size() + 1);
+  myinst.set_fstr("string from C++");
   myinst.ffloat = 9.87654321;
   myinst.fdouble = 9.876543210123456789;
 

@@ -13,7 +13,16 @@ std::map<FieldType, std::string> CFieldTypes = {
 };
 
 void ModuleStructsHeader(fmt::ostream &os, std::string const &modname) {
-  os.print("#pragma once\n\n#ifdef __cplusplus\nextern \"C\" {{\n#endif\n\n");
+  os.print(R"(#pragma once
+#ifdef __cplusplus
+#include<iostream>
+#include<string>
+#include<cstring>
+
+extern "C" {{
+
+#endif
+)");
 }
 
 void ModuleStructsParameters(fmt::ostream &os,
@@ -45,7 +54,9 @@ void ModuleStructsDerivedTypeHeader(fmt::ostream &os,
 }
 
 void ModuleStructsDerivedTypeField(fmt::ostream &os,
-                                   FieldDescriptor const &fd) {
+                                   std::string const &dtypename,
+                                   FieldDescriptor const &fd,
+                                   ParameterFields const &parameters) {
   std::string comment = SanitizeComment(fd.comment, "  //");
   if (comment.length()) {
     os.print("  //{}\n", comment);
@@ -54,10 +65,34 @@ void ModuleStructsDerivedTypeField(fmt::ostream &os,
 
   if (fd.is_array()) {
     for (int i = fd.size.size(); i > 0; --i) {
-      os.print("[{}]", fd.get_dim_size_str(i - 1));
+
+      int dim_size = fd.get_dim_size(i - 1, parameters);
+      if (fd.is_string()) {
+        dim_size++;
+      }
+
+      os.print("[{}]", dim_size);
     }
   }
   os.print(";\n");
+
+  if (fd.is_string()) {
+    os.print(R"(
+#ifdef __cplusplus
+  std::string get_{1}() const {{ return std::string({1}, {2}); }}
+  void set_{1}(std::string in_str) {{
+    if (in_str.size() > {2}) {{
+      std::cout
+          << "[WARN]: String: \"" << in_str
+          << "\", is too large to fit in {0}::{1}, truncated to {2} characters."
+          << std::endl;
+    }}
+    std::memcpy({1}, in_str.c_str(), std::min(size_t({2}), in_str.size()));
+  }}
+#endif
+  )",
+             dtypename, fd.name, fd.get_size(parameters));
+  }
 }
 
 void ModuleStructsDerivedTypeFooter(fmt::ostream &os,
@@ -162,7 +197,7 @@ void GenerateCInterface(std::string const &fname, std::string const &modname,
 
     for (auto const &fd : dt.second.fields) {
 
-      ModuleStructsDerivedTypeField(out, fd);
+      ModuleStructsDerivedTypeField(out, dt.first, fd, parameters);
     }
 
     ModuleStructsDerivedTypeFooter(out, dt.first);

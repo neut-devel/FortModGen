@@ -7,16 +7,12 @@ module fwrite_mod
       use testmod
 
       integer :: i, j, ctr
-      character(kind=C_CHAR,len=*), parameter :: test_str = "hello from fortran"
 
       print *, ">>>>>>>>>>>>>>>>>>>>"
       print *, "Writing from fortran"
       print *, "<<<<<<<<<<<<<<<<<<<<"
 
-      do i = 1, len(test_str)
-        testtype%fstr(i) = test_str(i:i)
-      end do
-      testtype%fstr(len(test_str)+1) = C_NULL_CHAR
+      call set_testtype_fstr("hello from fortran")
 
       testtype%ffloat = 1.234567
       testtype%fdouble = 1.2345678910
