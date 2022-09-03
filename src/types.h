@@ -23,8 +23,7 @@ struct ParameterFieldDescriptor {
   bool is_string() const { return type == FieldType::kString; }
 };
 
-using ParameterFields =
-    std::unordered_map<std::string, ParameterFieldDescriptor>;
+using ParameterFields = std::vector<ParameterFieldDescriptor>;
 
 struct FieldDescriptor {
 
@@ -40,7 +39,7 @@ struct FieldDescriptor {
 
   int get_size(ParameterFields const &parameters) const {
     int full_size = 1;
-    for(int i = 0; i < size.size(); ++i){
+    for (int i = 0; i < size.size(); ++i) {
       full_size *= get_dim_size(i, parameters);
     }
     return full_size;
@@ -55,8 +54,15 @@ struct FieldDescriptor {
     }
     auto const &dim = size[i];
     if (dim.index() == FieldDescriptor::kSizeString) {
-      return std::stol(
-          parameters.at(std::get<FieldDescriptor::kSizeString>(dim)).value);
+
+      for (auto const &p : parameters) {
+        if (std::get<FieldDescriptor::kSizeString>(dim) == p.name) {
+          return std::stol(p.value);
+        }
+      }
+      std::cout << "[ERROR]: No known parameter named: "
+                << std::get<FieldDescriptor::kSizeString>(dim) << std::endl;
+      abort();
     } else {
       return std::get<FieldDescriptor::kSizeInt>(dim);
     }

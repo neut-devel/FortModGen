@@ -54,19 +54,16 @@ int main(int argc, char const *argv[]) {
   auto dtypenames =
       toml::find<std::vector<std::string>>(fmod_descriptor, "derivedtypes");
 
-  auto parameters = toml::find_or<std::vector<ParameterFieldDescriptor>>(
+  auto ParameterFieldDescriptors = toml::find_or<std::vector<ParameterFieldDescriptor>>(
       fmod_descriptor, "parameters", {});
 
   std::cout << "Found module descriptor for module: " << modname << " with "
             << dtypenames.size() << " defined derived types and "
-            << parameters.size() << " parameters." << std::endl
+            << ParameterFieldDescriptors.size() << " parameters." << std::endl
             << std::endl;
 
   std::cout << "Parameters: " << std::endl;
-
-  ParameterFields ParameterFieldDescriptors;
-  for (auto const &p : parameters) {
-    ParameterFieldDescriptors[p.name] = p;
+  for (auto const &p : ParameterFieldDescriptors) {
     std::cout << "  " << p << std::endl;
   }
 
@@ -87,25 +84,29 @@ int main(int argc, char const *argv[]) {
 
       if (fd.size.size()) {
         for (auto const &dim : fd.size) {
+
           if (dim.index() == FieldDescriptor::kSizeString) {
-            if (!ParameterFieldDescriptors.count(
-                    std::get<FieldDescriptor::kSizeString>(dim))) {
+
+            bool found = false;
+            for (auto const &p : ParameterFieldDescriptors) {
+              if (std::get<FieldDescriptor::kSizeString>(dim) == p.name) {
+                if (!p.is_integer()) {
+                  std::cout << "[ERROR]: Field \"" << fd.name << "\" on type \""
+                            << dtypename << "\" has dimension parameter: \""
+                            << std::get<FieldDescriptor::kSizeString>(dim)
+                            << "\", which is a non-integer type: " << p.type
+                            << std::endl;
+                  abort();
+                }
+                found = true;
+              }
+            }
+
+            if (!found) {
               std::cout << "[ERROR]: Field \"" << fd.name << "\" on type \""
                         << dtypename << "\" has dimension parameter: \""
                         << std::get<FieldDescriptor::kSizeString>(dim)
                         << "\", which is not a declared parameter."
-                        << std::endl;
-              abort();
-            } else if (!ParameterFieldDescriptors
-                            [std::get<FieldDescriptor::kSizeString>(dim)]
-                                .is_integer()) {
-              std::cout << "[ERROR]: Field \"" << fd.name << "\" on type \""
-                        << dtypename << "\" has dimension parameter: \""
-                        << std::get<FieldDescriptor::kSizeString>(dim)
-                        << "\", which is a non-integer type: "
-                        << ParameterFieldDescriptors
-                               [std::get<FieldDescriptor::kSizeString>(dim)]
-                                   .type
                         << std::endl;
               abort();
             }

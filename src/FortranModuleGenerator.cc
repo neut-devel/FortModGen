@@ -23,8 +23,7 @@ void FortranFileHeader(fmt::ostream &os, std::string const &modname) {
 
 void FortranModuleParameters(fmt::ostream &os,
                              ParameterFields const &ParameterFieldDescriptors) {
-  for (auto const &ppair : ParameterFieldDescriptors) {
-    auto const &p = ppair.second;
+  for (auto const &p : ParameterFieldDescriptors) {
     std::string comment = SanitizeComment(p.comment, "  !");
     if (comment.length()) {
       os.print("  !{}\n", comment);
