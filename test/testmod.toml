@@ -6,6 +6,7 @@ parameters = [
   { name = "intpar", type = "integer", value = 2 },
   { name = "stringpar", type = "string", value = "abcde12345" },
   { name = "floatpar", type = "float", value = 1.234 },
+  { name = "floatparexp", type = "float", value = 1E-8 },
 ]
 
 derivedtypes = [ "testtype",  ]
@@ -19,7 +20,7 @@ fields = [
   { name = "ffloatapar",  type = "float", size = "intpar" },
   { name = "ffloat2a",  type = "float", size = [3,5], data = [ 
     1,2,3,4,5,
-    6,7,8.12345,9,10,
+    6,7,8.12345,9,10E-10,
     11,12,13,14,15
    ]},
   { name = "ffloat2apar",  type = "float", size = ["intpar", 5] },

@@ -1,5 +1,7 @@
 #include "types.h"
 
+#include "fmt/core.h"
+
 #include <iostream>
 
 namespace toml {
@@ -42,14 +44,14 @@ from<ParameterFieldDescriptor>::from_toml(const value &v) {
 
   auto val = find(v, "value");
 
-  if(val.is_string()){
+  if (val.is_string()) {
     f.value = get<std::string>(val);
-  } else if(val.is_floating()){
-    f.value = std::to_string(get<double>(val));
-  } else if(val.is_integer()){
+  } else if (val.is_floating()) {
+    f.value = fmt::format("{:g}", get<double>(val));
+  } else if (val.is_integer()) {
     f.value = std::to_string(get<int>(val));
   }
-  
+
   return f;
 }
 

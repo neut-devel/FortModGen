@@ -21,6 +21,9 @@ struct ParameterFieldDescriptor {
 
   bool is_integer() const { return type == FieldType::kInteger; }
   bool is_string() const { return type == FieldType::kString; }
+  bool is_floating() const {
+    return (type == FieldType::kFloat) || (type == FieldType::kDouble);
+  }
 };
 
 using ParameterFields = std::vector<ParameterFieldDescriptor>;

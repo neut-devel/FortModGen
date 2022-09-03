@@ -79,18 +79,18 @@ std::string DataElementToString(FieldType ft,
                                 std::variant<int, double> const &d) {
 
   if (ft == FieldType::kInteger) {
-    return std::to_string(std::get<0>(d));
+    return fmt::format("{}",std::get<0>(d));
   } else if (ft == FieldType::kFloat) {
     if (d.index() == 0) { // int
-      return std::to_string(std::get<0>(d));
+      return fmt::format("{}",std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return std::to_string(float(std::get<1>(d)));
+      return fmt::format("{:g}",float(std::get<1>(d)));
     }
   } else if (ft == FieldType::kFloat) {
     if (d.index() == 0) { // int
-      return std::to_string(std::get<0>(d));
+      return fmt::format("{}",std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return std::to_string(std::get<1>(d));
+      return fmt::format("{:g}",std::get<1>(d));
     }
   }
   return "";
