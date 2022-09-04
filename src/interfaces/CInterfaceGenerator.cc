@@ -14,6 +14,7 @@ std::map<FieldType, std::string> CFieldTypes = {
 
 void ModuleStructsHeader(fmt::ostream &os, std::string const &modname) {
   os.print(R"(#pragma once
+
 #ifdef __cplusplus
 #include<iostream>
 #include<string>
@@ -22,6 +23,7 @@ void ModuleStructsHeader(fmt::ostream &os, std::string const &modname) {
 extern "C" {{
 
 #endif
+
 )");
 }
 
@@ -33,9 +35,10 @@ void ModuleStructsParameters(fmt::ostream &os,
       os.print("//{}\n", comment);
     }
     if (p.is_string()) {
-      os.print("#define {} \"{}\"\n", p.name, p.value);
+      os.print("static char const * {} = \"{}\";\n", p.name, p.value);
     } else {
-      os.print("#define {} {}\n", p.name, p.value);
+      os.print("static {} const {} = {};\n", CFieldTypes[p.type], p.name,
+               p.value);
     }
     os.print("\n");
   }

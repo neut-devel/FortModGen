@@ -7,6 +7,7 @@ parameters = [
   { name = "stringpar", type = "string", value = "abcde12345" },
   { name = "floatpar", type = "float", value = 1.234 },
   { name = "floatparexp", type = "float", value = 1E-8 },
+  { name = "floatparsq", type = "float", value = "floatpar*floatpar" },
 ]
 
 derivedtypes = [ "testtype",  ]
