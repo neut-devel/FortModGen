@@ -58,7 +58,13 @@ void ModuleStructsDerivedTypeHeader(fmt::ostream &os,
   if (comment.length()) {
     os.print("//{}\n", comment);
   }
-  os.print("struct {}_t {{\n\n", dtypename);
+  os.print(R"(
+#ifdef FORTMODGEN_EXPOSE_GLOBAL_INSTANCE
+extern
+#endif
+struct {}_t {{
+
+)", dtypename);
 }
 
 void ModuleStructsDerivedTypeField(fmt::ostream &os,
