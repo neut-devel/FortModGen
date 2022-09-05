@@ -95,7 +95,7 @@ std::string DataElementToString(FieldType ft,
     } else if (d.index() == 2) { // string
       return fmt::format("{}", std::get<2>(d));
     }
-  } else if (ft == FieldType::kFloat) {
+  } else if (ft == FieldType::kDouble) {
     if (d.index() == 0) { // int
       return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
