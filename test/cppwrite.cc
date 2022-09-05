@@ -53,6 +53,12 @@ void cppsay() {
   std::cout << "Saying from C++" << std::endl;
   std::cout << "---------------" << std::endl;
 
+  std::cout << "par -- intpar: " << intpar << std::endl;
+  std::cout << "par -- stringpar: " << stringpar << std::endl;
+  std::cout << "par -- floatpar: " << floatpar << std::endl;
+  std::cout << "par -- floatparexp: " << floatparexp << std::endl;
+  std::cout << "par -- floatparsq: " << floatparsq << std::endl;
+
   auto myinst = FortMod::testtypeIF::copy();
 
   std::cout << "myinst.fstr: " << myinst.fstr << std::endl;

@@ -38,7 +38,8 @@ struct FieldDescriptor {
   std::vector<std::variant<int, std::string>> size;
   std::set<AttributeType> attributes;
   std::string comment;
-  std::vector<std::variant<int, double>> data;
+  using data_element_type = std::variant<int, double, std::string>;
+  std::vector<data_element_type> data;
 
   int get_size(ParameterFields const &parameters) const {
     int full_size = 1;

@@ -24,7 +24,7 @@
 
 cmake_minimum_required (VERSION 3.14 FATAL_ERROR)
 
-project(FortModGen VERSION 0.9.1 LANGUAGES C CXX Fortran)
+project(FortModGen VERSION 0.9.4 LANGUAGES C CXX Fortran)
 
 set (FortModGen_VERSION ${PROJECT_VERSION})
 

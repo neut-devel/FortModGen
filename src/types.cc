@@ -72,7 +72,7 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
     if (size_element.is_array()) {
       if (f.is_string() && (size_element.as_array().size() > 1)) {
         std::cout << "[ERROR]: We cannot currently handle arrays of strings, "
-                     "please submit an issue if this is a problem."
+                     "please submit an issue/PR if this is a problem."
                   << std::endl;
         abort();
       }
@@ -113,9 +113,11 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
           f.data.emplace_back(get<int>(el));
         } else if (el.is_floating()) {
           f.data.emplace_back(get<double>(el));
+        } else if (el.is_string()) {
+          f.data.emplace_back(get<std::string>(el));
         } else {
           std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
-                    << "\", found invalid size element type at index: " << ind
+                    << "\", found invalid element type at index: " << ind
                     << std::endl;
           abort();
         }
@@ -126,9 +128,11 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
         f.data.emplace_back(get<int>(data_element));
       } else if (data_element.is_floating()) {
         f.data.emplace_back(get<double>(data_element));
+      } else if (data_element.is_string()) {
+        f.data.emplace_back(get<std::string>(data_element));
       } else {
         std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
-                  << "\", found invalid size element type " << std::endl;
+                  << "\", found invalid element type " << std::endl;
         abort();
       }
     }

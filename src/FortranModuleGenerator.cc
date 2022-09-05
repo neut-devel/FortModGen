@@ -76,21 +76,32 @@ void FortranDerivedTypeField(fmt::ostream &os, FieldDescriptor const &fd,
 }
 
 std::string DataElementToString(FieldType ft,
-                                std::variant<int, double> const &d) {
+                                FieldDescriptor::data_element_type const &d) {
 
   if (ft == FieldType::kInteger) {
-    return fmt::format("{}",std::get<0>(d));
+    if (d.index() == 0) { // int
+      return fmt::format("{}", int(std::get<0>(d)));
+    } else if (d.index() == 1) { // double
+      return fmt::format("{}", int(std::get<1>(d)));
+    } else if (d.index() == 2) { // string
+      return fmt::format("{}", std::get<2>(d));
+    }
+
   } else if (ft == FieldType::kFloat) {
     if (d.index() == 0) { // int
-      return fmt::format("{}",std::get<0>(d));
+      return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return fmt::format("{:g}",float(std::get<1>(d)));
+      return fmt::format("{:g}", float(std::get<1>(d)));
+    } else if (d.index() == 2) { // string
+      return fmt::format("{}", std::get<2>(d));
     }
   } else if (ft == FieldType::kFloat) {
     if (d.index() == 0) { // int
-      return fmt::format("{}",std::get<0>(d));
+      return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return fmt::format("{:g}",std::get<1>(d));
+      return fmt::format("{:g}", std::get<1>(d));
+    } else if (d.index() == 2) { // string
+      return fmt::format("{}", std::get<2>(d));
     }
   }
   return "";
