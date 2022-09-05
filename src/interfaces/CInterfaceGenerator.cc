@@ -52,7 +52,7 @@ void ModuleStructsDerivedTypeHeader(fmt::ostream &os,
   if (comment.length()) {
     os.print("//{}\n", comment);
   }
-  os.print("extern struct {}_t {{\n\n", dtypename);
+  os.print("struct {}_t {{\n\n", dtypename);
 }
 
 void ModuleStructsDerivedTypeField(fmt::ostream &os,
@@ -92,14 +92,16 @@ void ModuleStructsDerivedTypeField(fmt::ostream &os,
     std::memcpy({1}, in_str.c_str(), std::min(size_t({2}), in_str.size()));
   }}
 #endif
-  )",
+)",
              dtypename, fd.name, fd.get_size(parameters));
   }
 }
 
 void ModuleStructsDerivedTypeFooter(fmt::ostream &os,
                                     std::string const &dtypename) {
-  os.print("\n}} {} ;\n\n", dtypename);
+  os.print(R"(
+}};
+)");
 }
 
 void ModuleStructsFooter(fmt::ostream &os, std::string const &modname) {
@@ -113,7 +115,12 @@ void CInterfaceHeader(fmt::ostream &os) {
 void CInterfaceDerivedTypeHeader(fmt::ostream &os,
                                  std::string const &dtypename) {
   os.print(R"(
-//C Interface for {0}
+
+//Fortran function declarations for struct interface for {0}
+void copy_{0}(struct {0}_t const *);
+void update_{0}(struct {0}_t const *);
+
+//C memory management helpers for {0}
 inline struct {0}_t *alloc_{0}(){{
   return malloc(sizeof(struct {0}_t));
 }}
@@ -127,34 +134,6 @@ inline void free_{0}(struct {0}_t *inst){{
            dtypename);
 }
 
-void CInterfaceDerivedTypeDetails(fmt::ostream &os,
-                                  std::string const &dtypename,
-                                  DerivedType const &dt,
-                                  ParameterFields const &parameters) {
-
-  os.print("inline void copy_{0}(struct {0}_t *inst){{\n", dtypename);
-  for (auto const &fd : dt.fields) {
-    if (fd.is_array()) {
-      os.print("  memcpy(inst->{1},{0}.{1},sizeof({2})*{3});\n", dtypename,
-               fd.name, CFieldTypes[fd.type], fd.get_size(parameters));
-    } else {
-      os.print("  inst->{1} = {0}.{1};\n", dtypename, fd.name);
-    }
-  }
-  os.print("}}\n\n");
-
-  os.print("inline void update_{0}(struct {0}_t const *inst){{\n", dtypename);
-  for (auto const &fd : dt.fields) {
-    if (fd.is_array()) {
-      os.print("  memcpy({0}.{1}, inst->{1},sizeof({2})*{3});\n", dtypename,
-               fd.name, CFieldTypes[fd.type], fd.get_size(parameters));
-    } else {
-      os.print("  {0}.{1} = inst->{1};\n", dtypename, fd.name);
-    }
-  }
-  os.print("}}\n\n");
-}
-
 void CInterfaceFooter(fmt::ostream &os) { os.print("\n#else\n"); }
 
 void CPPInterfaceHeader(fmt::ostream &os) {
@@ -165,14 +144,23 @@ void CPPInterfaceHeader(fmt::ostream &os) {
 void CPPInterfaceDerivedType(fmt::ostream &os, std::string const &dtypename) {
   os.print(R"(
 //C++ Interface for {0}
+
+extern "C" {{
+  //Fortran function declarations for struct interface for {0}
+  void copy_{0}(void *);
+  void update_{0}(void *);
+}}
+
 namespace {0}IF {{
 
 inline {0}_t copy(){{
-  return {0};
+  {0}_t inst;
+  copy_{0}(&inst);
+  return inst;
 }}
 
-inline void update({0}_t const &inst){{
-  {0} = inst;
+inline void update({0}_t inst){{
+  update_{0}(&inst);
 }}
 
 }}
@@ -211,7 +199,6 @@ void GenerateCInterface(std::string const &fname, std::string const &modname,
   CInterfaceHeader(out);
   for (auto const &dt : dtypes) {
     CInterfaceDerivedTypeHeader(out, dt.first);
-    CInterfaceDerivedTypeDetails(out, dt.first, dt.second, parameters);
   }
   CInterfaceFooter(out);
 

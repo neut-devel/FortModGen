@@ -182,8 +182,32 @@ void FortranStringAccessor(fmt::ostream &os, std::string const &dtypename,
 }
 
 void FortranDerivedTypeFooter(fmt::ostream &os, std::string const &dtypename) {
-  os.print("\n  end type t_{0}\n\n  type (t_{0}), bind(C) :: {0}\n\n",
+  os.print("\n  end type t_{0}\n\n  type (t_{0}), save, bind(C) :: {0}\n\n",
            dtypename);
+}
+
+void FortranDerivedTypeInstanceAccessors(fmt::ostream &os,
+                                         std::string const &dtypename) {
+
+  os.print(R"(
+    subroutine copy_{0}(cinst) bind(C, name='copy_{0}')
+      type (c_ptr), value :: cinst
+      type (t_{0}), pointer :: finst
+
+      call C_F_POINTER(cinst,finst)
+
+      finst = {0}
+    end subroutine
+
+    subroutine update_{0}(cinst) bind(C, name='update_{0}')
+      type (c_ptr), value :: cinst
+      type (t_{0}), pointer :: finst
+
+      call C_F_POINTER(cinst,finst)
+
+      {0} = finst
+    end subroutine
+    )", dtypename);
 }
 
 void FortranFileFooter(fmt::ostream &os, std::string const &modname) {
@@ -223,7 +247,7 @@ void GenerateFortranModule(std::string const &fname, std::string const &modname,
     }
   }
 
-  out.print("\n  save\n  contains\n");
+  out.print("\n  contains\n");
   for (auto const &dt : dtypes) {
 
     // instance data initialization must come after the instance declaration
@@ -233,6 +257,9 @@ void GenerateFortranModule(std::string const &fname, std::string const &modname,
       }
       FortranStringAccessor(out, dt.first, fd, parameters);
     }
+
+    // FortranDerivedTypeInstancePrint();
+    FortranDerivedTypeInstanceAccessors(out, dt.first);
   }
 
   FortranFileFooter(out, modname);
