@@ -17,8 +17,13 @@ std::map<FieldType, std::string> FortranFieldKinds = {
     {FieldType::kDouble, "C_DOUBLE"},
 };
 
-void FortranFileHeader(fmt::ostream &os, std::string const &modname) {
-  os.print("module {}\n  use iso_c_binding\n\n", modname);
+void FortranFileHeader(fmt::ostream &os, std::string const &modname,
+                       std::vector<std::string> const &Uses) {
+  os.print("module {}\n  use iso_c_binding\n", modname);
+  for (auto const &u : Uses) {
+    os.print("  use {}\n", u);
+  }
+  os.print("\n");
 }
 
 void FortranModuleParameters(fmt::ostream &os,
@@ -187,11 +192,12 @@ void FortranFileFooter(fmt::ostream &os, std::string const &modname) {
 
 void GenerateFortranModule(std::string const &fname, std::string const &modname,
                            ParameterFields const &parameters,
-                           DerivedTypes const &dtypes) {
+                           DerivedTypes const &dtypes,
+                           std::vector<std::string> const &Uses) {
 
   auto out = fmt::output_file(fname);
 
-  FortranFileHeader(out, modname);
+  FortranFileHeader(out, modname, Uses);
 
   FortranModuleParameters(out, parameters);
 

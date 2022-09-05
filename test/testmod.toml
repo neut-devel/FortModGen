@@ -2,6 +2,8 @@
 
 name = "testmod"
 
+uses = ["ISO_FORTRAN_ENV", ]
+
 parameters = [
   { name = "intpar", type = "integer", value = 2 },
   { name = "stringpar", type = "string", value = "abcde12345" },

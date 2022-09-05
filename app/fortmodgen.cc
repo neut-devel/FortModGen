@@ -54,8 +54,12 @@ int main(int argc, char const *argv[]) {
   auto dtypenames =
       toml::find<std::vector<std::string>>(fmod_descriptor, "derivedtypes");
 
-  auto ParameterFieldDescriptors = toml::find_or<std::vector<ParameterFieldDescriptor>>(
-      fmod_descriptor, "parameters", {});
+  auto ParameterFieldDescriptors =
+      toml::find_or<std::vector<ParameterFieldDescriptor>>(fmod_descriptor,
+                                                           "parameters", {});
+
+  auto Uses =
+      toml::find_or<std::vector<std::string>>(fmod_descriptor, "uses", {});
 
   std::cout << "Found module descriptor for module: " << modname << " with "
             << dtypenames.size() << " defined derived types and "
@@ -117,7 +121,7 @@ int main(int argc, char const *argv[]) {
   }
 
   GenerateFortranModule(outstub + ".f90", modname, ParameterFieldDescriptors,
-                        TypeFieldDescriptors);
+                        TypeFieldDescriptors, Uses);
   GenerateCInterface(outstub + ".h", modname, ParameterFieldDescriptors,
-                     TypeFieldDescriptors);
+                     TypeFieldDescriptors, Uses);
 }
