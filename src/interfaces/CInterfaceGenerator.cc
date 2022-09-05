@@ -117,8 +117,8 @@ void CInterfaceDerivedTypeHeader(fmt::ostream &os,
   os.print(R"(
 
 //Fortran function declarations for struct interface for {0}
-void copy_{0}(struct {0}_t const *);
-void update_{0}(struct {0}_t const *);
+void copy_{0}(void *);
+void update_{0}(void *);
 
 //C memory management helpers for {0}
 inline struct {0}_t *alloc_{0}(){{
