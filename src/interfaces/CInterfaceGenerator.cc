@@ -12,6 +12,12 @@ std::map<FieldType, std::string> CFieldTypes = {
     {FieldType::kDouble, "double"},
 };
 
+std::map<FieldType, std::string> CPPTypePrintfSpecifier = {
+    {FieldType::kInteger, "%d"},   {FieldType::kString, "%s"},
+    {FieldType::kCharacter, "%c"}, {FieldType::kFloat, "%E"},
+    {FieldType::kDouble, "%E"},
+};
+
 void ModuleStructsHeader(fmt::ostream &os, std::string const &modname) {
   os.print(R"(#pragma once
 
@@ -100,8 +106,13 @@ void ModuleStructsDerivedTypeField(fmt::ostream &os,
 void ModuleStructsDerivedTypeFooter(fmt::ostream &os,
                                     std::string const &dtypename) {
   os.print(R"(
-}};
-)");
+}}
+#ifdef FORTMODGEN_EXPOSE_GLOBAL_INSTANCE
+{}
+#endif
+;
+)",
+           dtypename);
 }
 
 void ModuleStructsFooter(fmt::ostream &os, std::string const &modname) {
@@ -119,6 +130,7 @@ void CInterfaceDerivedTypeHeader(fmt::ostream &os,
 //Fortran function declarations for struct interface for {0}
 void copy_{0}(void *);
 void update_{0}(void *);
+void print_{0}();
 
 //C memory management helpers for {0}
 inline struct {0}_t *alloc_{0}(){{
@@ -149,6 +161,7 @@ extern "C" {{
   //Fortran function declarations for struct interface for {0}
   void copy_{0}(void *);
   void update_{0}(void *);
+  void print_{0}();
 }}
 
 namespace {0}IF {{

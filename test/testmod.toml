@@ -27,4 +27,5 @@ fields = [
     11,12,13,14,15
    ]},
   { name = "ffloat2apar",  type = "float", size = ["intpar", 5] },
+  { name = "ffloat3dim",  type = "integer", size = [3,3,3] },
 ]

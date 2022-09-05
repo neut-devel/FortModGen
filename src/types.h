@@ -49,6 +49,14 @@ struct FieldDescriptor {
     return full_size;
   }
 
+  std::string get_shape_str(ParameterFields const &parameters) const {
+    std::stringstream ss("");
+    for (int i = 0; i < size.size(); ++i) {
+      ss << get_dim_size(i, parameters) << ((i+1 == size.size()) ? "":":");
+    }
+    return ss.str();
+  }
+
   int get_dim_size(int i, ParameterFields const &parameters) const {
     if (i >= size.size()) {
       std::cout << "[ERROR]: When accessing dimension size for field: " << name
@@ -120,3 +128,7 @@ template <> struct from<FieldDescriptor> {
 std::ostream &operator<<(std::ostream &os, FieldType ft);
 std::ostream &operator<<(std::ostream &os, ParameterFieldDescriptor const &fd);
 std::ostream &operator<<(std::ostream &os, FieldDescriptor const &fd);
+
+std::string to_string(FieldType ft);
+std::string to_string(ParameterFieldDescriptor const &fd);
+std::string to_string(FieldDescriptor const &fd);

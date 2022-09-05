@@ -197,3 +197,19 @@ std::ostream &operator<<(std::ostream &os, FieldDescriptor const &fd) {
 std::ostream &operator<<(std::ostream &os, ParameterFieldDescriptor const &fd) {
   return os << fd.type << ": " << fd.name << " = " << fd.value;
 }
+
+std::string to_string(FieldType ft){
+  std::stringstream ss("");
+  ss << ft;
+  return ss.str();
+}
+std::string to_string(ParameterFieldDescriptor const &fd){
+  std::stringstream ss("");
+  ss << fd;
+  return ss.str();
+}
+std::string to_string(FieldDescriptor const &fd){
+  std::stringstream ss("");
+  ss << fd;
+  return ss.str();
+}

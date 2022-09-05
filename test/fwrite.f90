@@ -54,25 +54,7 @@ module fwrite_mod
       print *, "Saying from fortran"
       print *, "-------------------"
 
-
-      write (*,*) "testtype%fstr: ", testtype%fstr
-      write (*,*) "testtype%ffloat: ", testtype%ffloat
-      write (*,*) "testtype%fdouble: ", testtype%fdouble
-
-      write(*,fmt='(A,5(F5.0,1X),A)') " testtype%ffloata: [ ", (testtype%ffloata(i), i =1,5), "]"
-      write(*,fmt='(A,2(F5.0,1X),A)') " testtype%ffloatapar: [ ", (testtype%ffloatapar(i), i =1,intpar), "]"
-      
-      write(*,fmt='(A)') " testtype%ffloat2a ["
-      do i = 1, 3
-        write(*,fmt='(3X,A,5(F5.0,1X), A)') "    [ ", (testtype%ffloat2a(i,j), j =1,5), "]"        
-      end do
-      write(*,fmt='(A)') " ]"
-      
-      write(*,fmt='(A)') " testtype%ffloat2apar ["
-      do i = 1, intpar
-        write(*,fmt='(3X,A,5(F5.0,1X), A)') "    [ ", (testtype%ffloat2apar(i,j), j =1,5), "]"        
-      end do
-      write(*,fmt='(A)') " ]"
+      call print_testtype()
 
       print *, "<<<<<<<<<<<<<<<<<<<"
 

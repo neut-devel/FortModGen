@@ -17,6 +17,12 @@ std::map<FieldType, std::string> FortranFieldKinds = {
     {FieldType::kDouble, "C_DOUBLE"},
 };
 
+std::map<FieldType, std::string> FortranPrintFormatSpecifier = {
+    {FieldType::kInteger, "I3"},      {FieldType::kString, "999A"},
+    {FieldType::kCharacter, "A"},     {FieldType::kFloat, "ES10.3E1"},
+    {FieldType::kDouble, "ES10.3E1"},
+};
+
 void FortranFileHeader(fmt::ostream &os, std::string const &modname,
                        std::vector<std::string> const &Uses) {
   os.print("module {}\n  use iso_c_binding\n", modname);
@@ -163,7 +169,7 @@ void FortranStringAccessor(fmt::ostream &os, std::string const &dtypename,
       do i = 1, {2}
           out_str(i:i) = {0}%{1}(i)
       end do
-    end function
+    end function get_{0}_{1}
 
     subroutine set_{0}_{1}(in_str)
       use iso_c_binding
@@ -176,13 +182,107 @@ void FortranStringAccessor(fmt::ostream &os, std::string const &dtypename,
           {0}%{1}(i) = in_str(i:i)
       end do
       {0}%{1}({2}) = C_NULL_CHAR
-    end subroutine
+    end subroutine set_{0}_{1}
 )",
            dtypename, fd.name, fd.get_size(parameters));
 }
 
 void FortranDerivedTypeFooter(fmt::ostream &os, std::string const &dtypename) {
   os.print("\n  end type t_{0}\n\n  type (t_{0}), save, bind(C) :: {0}\n\n",
+           dtypename);
+}
+
+void FortranPrintArrayRecursiveHelper(
+    fmt::ostream &os, std::string const &dtypename,
+    ParameterFields const &parameters,
+    decltype(DerivedTypes::mapped_type::fields)::value_type const &fd, int d,
+    std::string index_string, std::string indent) {
+
+  if (d == 0) { // we actually print a row
+
+    os.print(R"-(
+{0}do {2} = 1, {3}
+{0}  write (*, "({7})", advance='no') {4}%{5}({6})
+{0}end do)-",
+             indent, indent.substr(0, indent.size() - 2), char('i' + d),
+             fd.get_dim_size(d, parameters), dtypename, fd.name, index_string,
+             FortranPrintFormatSpecifier[fd.type]);
+
+  } else {
+    os.print(R"-(
+{0}do {2} = 1, {3}
+{0}  write (*,"(A,I3X,A)"{4}) "{1}", {2}, ": ["
+)-",
+             indent, indent.substr(0, indent.size() - 2), char('i' + d),
+             fd.get_dim_size(d, parameters), (d == 1) ? ",advance='no'" : "");
+    FortranPrintArrayRecursiveHelper(os, dtypename, parameters, fd, d - 1,
+                                     index_string, indent + "  ");
+
+    os.print(R"-(
+{0}  write (*,"(A)") "{1}  ],"
+{0}end do
+)-",
+             indent, indent.substr(0, indent.size() - 2));
+  }
+}
+
+void FortranDerivedTypeInstancePrint(fmt::ostream &os,
+                                     std::string const &dtypename,
+                                     ParameterFields const &parameters,
+                                     decltype(DerivedTypes::mapped_type::fields)
+                                         const &fields) {
+
+  os.print(R"(
+    subroutine print_{0}()  bind(C, name='print_{0}')
+      implicit integer(i-z)
+
+      write (*,*) "{0}:"
+)",
+           dtypename);
+
+  for (auto const &fd : fields) {
+
+    if (fd.is_array() && !fd.is_string()) {
+      os.print(R"-(      write (*,"(A)"{3}) "  {1} :: {0}({2})")-", fd.name,
+               to_string(fd.type), fd.get_shape_str(parameters),
+               (fd.size.size() > 1) ? "" : ",advance='no'");
+
+      std::stringstream index_string("");
+      for (int i = 0; i < fd.size.size(); ++i) {
+        index_string << char('i' + i) << ((i + 1) == fd.size.size() ? "" : ",");
+      }
+
+      if (fd.size.size() > 1) {
+        os.print(R"-(
+      write (*,"(A)") "  ["
+)-");
+      } else {
+        os.print(R"-(
+      write (*,"(A)", advance='no') "  ["
+)-");
+      }
+
+      FortranPrintArrayRecursiveHelper(os, dtypename, parameters, fd,
+                                       (fd.size.size() - 1), index_string.str(),
+                                       "      ");
+      os.print(R"-(
+      write (*,"(A)") "  ]"
+
+)-");
+
+    } else {
+      os.print(R"-(      write (*,"(A,{3})") "  {1}({2}): ", {0}%{1}
+
+)-",
+               dtypename, fd.name, to_string(fd.type),
+               FortranPrintFormatSpecifier[fd.type]);
+    }
+  }
+
+  os.print(R"(
+        write (*,*) "end {0}"
+    end subroutine print_{0}
+)",
            dtypename);
 }
 
@@ -197,7 +297,7 @@ void FortranDerivedTypeInstanceAccessors(fmt::ostream &os,
       call C_F_POINTER(cinst,finst)
 
       finst = {0}
-    end subroutine
+    end subroutine copy_{0}
 
     subroutine update_{0}(cinst) bind(C, name='update_{0}')
       type (c_ptr), value :: cinst
@@ -206,8 +306,9 @@ void FortranDerivedTypeInstanceAccessors(fmt::ostream &os,
       call C_F_POINTER(cinst,finst)
 
       {0} = finst
-    end subroutine
-    )", dtypename);
+    end subroutine update_{0}
+    )",
+           dtypename);
 }
 
 void FortranFileFooter(fmt::ostream &os, std::string const &modname) {
@@ -258,7 +359,8 @@ void GenerateFortranModule(std::string const &fname, std::string const &modname,
       FortranStringAccessor(out, dt.first, fd, parameters);
     }
 
-    // FortranDerivedTypeInstancePrint();
+    FortranDerivedTypeInstancePrint(out, dt.first, parameters,
+                                    dt.second.fields);
     FortranDerivedTypeInstanceAccessors(out, dt.first);
   }
 
