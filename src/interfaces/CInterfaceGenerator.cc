@@ -9,22 +9,24 @@
 std::map<FieldType, std::string> CFieldTypes = {
     {FieldType::kInteger, "int"},    {FieldType::kString, "char"},
     {FieldType::kCharacter, "char"}, {FieldType::kFloat, "float"},
-    {FieldType::kDouble, "double"},
+    {FieldType::kDouble, "double"},  {FieldType::kBool, "_Bool"},
 };
 
-std::map<FieldType, std::string> CPPTypePrintfSpecifier = {
+std::map<FieldType, std::string> CTypePrintfSpecifier = {
     {FieldType::kInteger, "%d"},   {FieldType::kString, "%s"},
-    {FieldType::kCharacter, "%c"}, {FieldType::kFloat, "%E"},
-    {FieldType::kDouble, "%E"},
+    {FieldType::kCharacter, "%c"}, {FieldType::kFloat, "%.3E"},
+    {FieldType::kDouble, "%.3E"},  {FieldType::kBool, "%d"},
 };
 
 void ModuleStructsHeader(fmt::ostream &os, std::string const &modname) {
   os.print(R"(#pragma once
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
-#include<iostream>
-#include<string>
-#include<cstring>
+#include <iostream>
+#include <string>
+#include <cstring>
 
 extern "C" {{
 
@@ -64,7 +66,8 @@ extern
 #endif
 struct {}_t {{
 
-)", dtypename);
+)",
+           dtypename);
 }
 
 void ModuleStructsDerivedTypeField(fmt::ostream &os,
@@ -152,10 +155,120 @@ inline void free_{0}(struct {0}_t *inst){{
            dtypename);
 }
 
-void CInterfaceFooter(fmt::ostream &os) { os.print("\n#else\n"); }
+void CInterfaceFooter(fmt::ostream &os) { os.print("\n#endif\n"); }
+
+void CPrintArrayRecursiveHelper(
+    fmt::ostream &os, std::string const &dtypename,
+    ParameterFields const &parameters,
+    decltype(DerivedTypes::mapped_type::fields)::value_type const &fd, int d,
+    std::string index_string, std::string indent) {
+
+  if (d == 0) { // we actually print a row
+
+    os.print(R"-(
+{0}for(int {1} = 0; {1} < {2}; ++{1}) {{
+{0}  printf("{6}%s",{3}_local_inst.{4}{5}, (({1}+1) == {2}) ? " " : ", " );
+{0}}})-",
+             indent, char('i' + d), fd.get_dim_size(d, parameters), dtypename,
+             fd.name, index_string, CTypePrintfSpecifier[fd.type]);
+
+  } else {
+    os.print(R"-(
+{0}for(int {1} = 0; {1} < {2}; ++{1}) {{
+{0}  printf("{0} %d: [ {3}", {1});
+)-",
+             indent, char('i' + d), fd.get_dim_size(d, parameters),
+             (d == 1) ? "" : R"(\n)");
+    CPrintArrayRecursiveHelper(os, dtypename, parameters, fd, d - 1,
+                               index_string, indent + "    ");
+
+    os.print(R"-(
+{0}  printf("{0}    ],\n");
+{0}}}
+)-",
+             indent);
+  }
+}
+
+void CDerivedTypeInstancePrint(fmt::ostream &os, std::string const &dtypename,
+                               ParameterFields const &parameters,
+                               decltype(DerivedTypes::mapped_type::fields)
+                                   const &fields) {
+
+  os.print(R"(
+#ifndef __cplusplus
+#include <stdio.h>
+#else
+#include <cstdio>
+#define printf std::printf
+#endif
+
+#ifdef __cplusplus
+extern "C" {{
+#endif
+
+inline void cprint_{0}(){{
+
+#ifndef __cplusplus
+  struct {0}_t {0}_local_inst;
+  copy_{0}(&{0}_local_inst);
+#else
+  auto {0}_local_inst = FortMod::{0}IF::copy();
+#endif
+  
+  printf("{0}:\n");
+)",
+           dtypename);
+
+  for (auto const &fd : fields) {
+
+    if (fd.is_array() && !fd.is_string()) {
+      os.print(R"-(  printf("  {1} {0}{2}: {3}");)-", fd.name,
+               to_string(fd.type), fd.get_cshape_str(parameters),
+               (fd.size.size() > 1) ? R"(\n)" : "");
+
+      std::stringstream index_string("");
+      for (int i = fd.size.size(); i > 0; --i) {
+        index_string << "[" << char('i' + i - 1) << "]";
+      }
+
+      os.print(R"-(
+  printf("  [ {}");
+)-",
+               fd.size.size() > 1 ? R"(\n)" : "");
+
+      CPrintArrayRecursiveHelper(os, dtypename, parameters, fd,
+                                 fd.size.size() - 1, index_string.str(), "  ");
+      os.print(R"-(
+  printf("  ]\n");
+
+)-");
+
+    } else {
+      os.print(R"-(  printf("  {2} {1}: {3}\n", {0}_local_inst.{1});
+
+)-",
+               dtypename, fd.name, to_string(fd.type),
+               CTypePrintfSpecifier[fd.type]);
+    }
+  }
+
+  os.print(R"(
+  printf("end {0}\n");
+}}
+
+#ifdef __cplusplus
+}}
+#undef printf
+#endif
+)",
+           dtypename);
+}
 
 void CPPInterfaceHeader(fmt::ostream &os) {
-  os.print(R"(namespace FortMod {{
+  os.print(R"(
+#ifdef __cplusplus
+namespace FortMod {{
 )");
 }
 
@@ -226,4 +339,8 @@ void GenerateCInterface(std::string const &fname, std::string const &modname,
     CPPInterfaceDerivedType(out, dt.first);
   }
   CPPInterfaceFooter(out);
+
+  for (auto const &dt : dtypes) {
+    CDerivedTypeInstancePrint(out, dt.first, parameters, dt.second.fields);
+  }
 }

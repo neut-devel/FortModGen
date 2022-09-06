@@ -6,58 +6,50 @@ module fwrite_mod
       use iso_fortran_env
       use testmod
 
-      integer :: i, j, ctr
+      integer :: i, j, k, ctr
 
-      print *, ">>>>>>>>>>>>>>>>>>>>"
-      print *, "Writing from fortran"
-      print *, "<<<<<<<<<<<<<<<<<<<<"
+      testtype1%fbool = .true.
+      testtype1%ffloat = 1.2345e0
+      testtype1%fdouble = 1.234567891d0
+      call set_testtype1_fstr("string from fortran")
 
-      call set_testtype_fstr("hello from fortran")
-
-      testtype%ffloat = 1.234567
-      testtype%fdouble = 1.2345678910
-
+      ctr = 1
       do i = 1, 5
-        testtype%ffloata(i) = i
+        testtype2%ffloata(i) = ctr
+        ctr = ctr + 1
       end do
 
-      do i = 1, intpar
-        testtype%ffloatapar(i) = i
-      end do
-      
       ctr = 10
-      do i = 1, 3
-        do j = 1, 5
-          testtype%ffloat2a(i,j) = ctr
-          ctr = ctr + 1
-        end do
+      do i = 1, intpar
+        testtype2%ffloatapar(i) = ctr
+        ctr = ctr + 1
       end do
       
       ctr = 100
-      do i = 1, intpar
-        do j = 1, 5
-          testtype%ffloat2apar(i,j) = ctr
+      do j = 1, 5
+        do i = 1, 3
+          testtype2%ffloat2a(i,j) = ctr
           ctr = ctr + 1
         end do
       end do
-    flush(output_unit)
-    end subroutine
+      
+      ctr = 1000
+      do j = 1, 5
+        do i = 1, intpar
+          testtype2%ffloat2apar(i,j) = ctr
+          ctr = ctr + 1
+        end do
+      end do
 
-    subroutine fortsay() bind(C, name="fortsay")
-      use iso_c_binding
-      use iso_fortran_env
-      use testmod
+      ctr = 10000
+      do k = 1, 4
+        do j = 1, 3
+          do i = 1, 2
+            testtype2%fint3dim(i,j,k) = ctr
+            ctr = ctr + 1
+          end do
+        end do
+      end do
 
-      integer :: i, j
-
-      print *, ">>>>>>>>>>>>>>>>>>>"
-      print *, "Saying from fortran"
-      print *, "-------------------"
-
-      call print_testtype()
-
-      print *, "<<<<<<<<<<<<<<<<<<<"
-
-    flush(output_unit)
     end subroutine
 end module fwrite_mod

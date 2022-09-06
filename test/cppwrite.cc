@@ -8,98 +8,47 @@ extern "C" {
 
 void cppwrite() {
 
-  auto myinst = FortMod::testtypeIF::copy();
+  auto myinst1 = FortMod::testtype1IF::copy();
+  auto myinst2 = FortMod::testtype2IF::copy();
 
-  std::cout << ">>>>>>>>>>>>>>>>" << std::endl;
-  std::cout << "Writing from C++" << std::endl;
-  std::cout << "<<<<<<<<<<<<<<<<" << std::endl;
+  myinst1.fbool = false;
+  myinst1.ffloat = 9.8765;
+  myinst1.fdouble = 9.876543210;
+  myinst1.set_fstr("string from C++");
 
-  myinst.set_fstr("string from C++");
-  myinst.ffloat = 9.87654321;
-  myinst.fdouble = 9.876543210123456789;
-
+  int ctr = 1;
   for (int i = 0; i < 5; ++i) {
-    myinst.ffloata[i] = 5 - i;
+    myinst2.ffloata[i] = ctr--;
   }
 
-  int ctr = 10;
+  ctr = 10;
   for (int i = 0; i < intpar; ++i) {
-    myinst.ffloatapar[i] = ctr;
-    ctr--;
+    myinst2.ffloatapar[i] = ctr--;
   }
 
   ctr = 100;
-  for (int j = 0; j < 3; ++j) {
-    for (int i = 0; i < 5; ++i) {
-      myinst.ffloat2a[i][j] = ctr;
-      ctr--;
-    }
-  }
-
-  ctr = 200;
-  for (int j = 0; j < intpar; ++j) {
-    for (int i = 0; i < 5; ++i) {
-      myinst.ffloat2apar[i][j] = ctr;
-      ctr--;
-    }
-  }
-
-  FortMod::testtypeIF::update(myinst);
-}
-
-void cppsay() {
-
-  std::cout << ">>>>>>>>>>>>>>>" << std::endl;
-  std::cout << "Saying from C++" << std::endl;
-  std::cout << "---------------" << std::endl;
-
-  std::cout << "par -- intpar: " << intpar << std::endl;
-  std::cout << "par -- stringpar: " << stringpar << std::endl;
-  std::cout << "par -- floatpar: " << floatpar << std::endl;
-  std::cout << "par -- floatparexp: " << floatparexp << std::endl;
-  std::cout << "par -- floatparsq: " << floatparsq << std::endl;
-
-  auto myinst = FortMod::testtypeIF::copy();
-
-  std::cout << "myinst.fstr: " << myinst.fstr << std::endl;
-  std::cout << "myinst.ffloat: " << myinst.ffloat << std::endl;
-  std::cout << "myinst.fdouble: " << myinst.fdouble << std::endl;
-
-  std::cout << "myinst.ffloata: [";
   for (int i = 0; i < 5; ++i) {
-    std::cout << std::setw(2) << myinst.ffloata[i] << (i != 4 ? ", " : " ");
-  }
-  std::cout << "]" << std::endl;
-
-  std::cout << "myinst.ffloatapar: [";
-  for (int i = 0; i < intpar; ++i) {
-    std::cout << std::setw(2) << myinst.ffloatapar[i]
-              << (i != (intpar - 1) ? ", " : " ");
-  }
-  std::cout << "]" << std::endl;
-
-  std::cout << "myinst.ffloat2a: [" << std::endl;
-  for (int j = 0; j < 3; ++j) {
-    std::cout << "    [ ";
-    for (int i = 0; i < 5; ++i) {
-      std::cout << std::setw(2) << myinst.ffloat2a[i][j]
-                << (i != (5 - 1) ? ", " : " ");
+    for (int j = 0; j < 3; ++j) {
+      myinst2.ffloat2a[i][j] = ctr--;
     }
-    std::cout << "]" << std::endl;
   }
-  std::cout << "]" << std::endl;
 
-  std::cout << "myinst.ffloat2apar: [" << std::endl;
-  for (int j = 0; j < intpar; ++j) {
-    std::cout << "    [ ";
-    for (int i = 0; i < 5; ++i) {
-      std::cout << std::setw(2) << myinst.ffloat2apar[i][j]
-                << (i != (5 - 1) ? ", " : " ");
+  ctr = 1000;
+  for (int i = 0; i < 5; ++i) {
+    for (int j = 0; j < intpar; ++j) {
+      myinst2.ffloat2apar[i][j] = ctr--;
     }
-    std::cout << "]" << std::endl;
   }
-  std::cout << "]" << std::endl;
 
-  std::cout << "<<<<<<<<<<<<<<<" << std::endl;
+  ctr = 10000;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 2; ++k) {
+        myinst2.fint3dim[i][j][k] = ctr--;
+      }
+    }
+  }
+  FortMod::testtype1IF::update(myinst1);
+  FortMod::testtype2IF::update(myinst2);
 }
 }

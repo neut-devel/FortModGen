@@ -10,7 +10,7 @@
 #include <variant>
 #include <vector>
 
-enum class FieldType { kInteger, kString, kCharacter, kFloat, kDouble };
+enum class FieldType { kInteger, kString, kCharacter, kFloat, kDouble, kBool };
 enum class AttributeType { kConfigurable };
 
 struct ParameterFieldDescriptor {
@@ -49,10 +49,18 @@ struct FieldDescriptor {
     return full_size;
   }
 
-  std::string get_shape_str(ParameterFields const &parameters) const {
+  std::string get_fort_shape_str(ParameterFields const &parameters) const {
     std::stringstream ss("");
     for (int i = 0; i < size.size(); ++i) {
-      ss << get_dim_size(i, parameters) << ((i+1 == size.size()) ? "":":");
+      ss << get_dim_size(i, parameters) << ((i + 1 == size.size()) ? "" : ":");
+    }
+    return ss.str();
+  }
+
+  std::string get_cshape_str(ParameterFields const &parameters) const {
+    std::stringstream ss("");
+    for (int i = size.size(); i > 0; --i) {
+      ss << "[" << get_dim_size(i - 1, parameters) << "]";
     }
     return ss.str();
   }

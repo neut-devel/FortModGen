@@ -8,19 +8,19 @@
 std::map<FieldType, std::string> FortranFieldTypes = {
     {FieldType::kInteger, "integer"},     {FieldType::kString, "character"},
     {FieldType::kCharacter, "character"}, {FieldType::kFloat, "real"},
-    {FieldType::kDouble, "real"},
+    {FieldType::kDouble, "real"},         {FieldType::kBool, "logical"},
 };
 
 std::map<FieldType, std::string> FortranFieldKinds = {
     {FieldType::kInteger, "C_INT"},    {FieldType::kString, "C_CHAR"},
     {FieldType::kCharacter, "C_CHAR"}, {FieldType::kFloat, "C_FLOAT"},
-    {FieldType::kDouble, "C_DOUBLE"},
+    {FieldType::kDouble, "C_DOUBLE"},  {FieldType::kBool, "C_BOOL"},
 };
 
 std::map<FieldType, std::string> FortranPrintFormatSpecifier = {
-    {FieldType::kInteger, "I3"},      {FieldType::kString, "999A"},
-    {FieldType::kCharacter, "A"},     {FieldType::kFloat, "ES10.3E1"},
-    {FieldType::kDouble, "ES10.3E1"},
+    {FieldType::kInteger, "I3X"},      {FieldType::kString, "999A"},
+    {FieldType::kCharacter, "A"},     {FieldType::kFloat, "ES10.3E1X"},
+    {FieldType::kDouble, "ES10.3E1X"}, {FieldType::kBool, "LX"},
 };
 
 void FortranFileHeader(fmt::ostream &os, std::string const &modname,
@@ -114,8 +114,18 @@ std::string DataElementToString(FieldType ft,
     } else if (d.index() == 2) { // string
       return fmt::format("{}", std::get<2>(d));
     }
+  } else if (ft == FieldType::kBool) {
+    if (d.index() == 0) { // int
+      return std::get<0>(d) ? ".true." : ".false.";
+    } else {
+      std::cout << "[ERROR]: Invalid data type variant index: " << d.index()
+                << ", expected 0 == int for Field of type bool." << std::endl;
+      abort();
+    }
   }
-  return "";
+  std::cout << "[ERROR]: Cannot transcribe FieldType: " << ft << " to data."
+            << std::endl;
+  abort();
 }
 
 void FortranDerivedTypeFieldData(fmt::ostream &os, std::string const &dtypename,
@@ -244,7 +254,7 @@ void FortranDerivedTypeInstancePrint(fmt::ostream &os,
 
     if (fd.is_array() && !fd.is_string()) {
       os.print(R"-(      write (*,"(A)"{3}) "  {1} :: {0}({2})")-", fd.name,
-               to_string(fd.type), fd.get_shape_str(parameters),
+               to_string(fd.type), fd.get_fort_shape_str(parameters),
                (fd.size.size() > 1) ? "" : ",advance='no'");
 
       std::stringstream index_string("");

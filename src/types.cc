@@ -18,6 +18,8 @@ FieldType from<FieldType>::from_toml(const value &v) {
     return FieldType::kFloat;
   } else if (typenm == "double") {
     return FieldType::kDouble;
+  } else if (typenm == "bool") {
+    return FieldType::kBool;
   } else {
     std::cout << "[ERROR]: Unhandled FieldType: " << typenm << std::endl;
     abort();
@@ -50,6 +52,12 @@ from<ParameterFieldDescriptor>::from_toml(const value &v) {
     f.value = fmt::format("{:g}", get<double>(val));
   } else if (val.is_integer()) {
     f.value = std::to_string(get<int>(val));
+  } else if (val.is_boolean()) {
+    f.value = val.as_boolean() ? "true" : "false";
+  } else {
+    std::cout << "[ERROR]: Failed to parse parameter value as known type: "
+              << val.as_string() << std::endl;
+    abort();
   }
 
   return f;
@@ -115,6 +123,8 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
           f.data.emplace_back(get<double>(el));
         } else if (el.is_string()) {
           f.data.emplace_back(get<std::string>(el));
+        } else if (el.is_boolean()) {
+          f.data.emplace_back(get<bool>(el));
         } else {
           std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
                     << "\", found invalid element type at index: " << ind
@@ -130,6 +140,8 @@ FieldDescriptor from<FieldDescriptor>::from_toml(const value &v) {
         f.data.emplace_back(get<double>(data_element));
       } else if (data_element.is_string()) {
         f.data.emplace_back(get<std::string>(data_element));
+      } else if (data_element.is_boolean()) {
+        f.data.emplace_back(int(get<bool>(data_element)));
       } else {
         std::cout << "[ERROR] When parsing descriptor for field: \"" << f.name
                   << "\", found invalid element type " << std::endl;
@@ -159,6 +171,9 @@ std::ostream &operator<<(std::ostream &os, FieldType ft) {
   }
   case FieldType::kDouble: {
     return os << "double";
+  }
+  case FieldType::kBool: {
+    return os << "bool";
   }
   }
   return os;
@@ -198,17 +213,17 @@ std::ostream &operator<<(std::ostream &os, ParameterFieldDescriptor const &fd) {
   return os << fd.type << ": " << fd.name << " = " << fd.value;
 }
 
-std::string to_string(FieldType ft){
+std::string to_string(FieldType ft) {
   std::stringstream ss("");
   ss << ft;
   return ss.str();
 }
-std::string to_string(ParameterFieldDescriptor const &fd){
+std::string to_string(ParameterFieldDescriptor const &fd) {
   std::stringstream ss("");
   ss << fd;
   return ss.str();
 }
-std::string to_string(FieldDescriptor const &fd){
+std::string to_string(FieldDescriptor const &fd) {
   std::stringstream ss("");
   ss << fd;
   return ss.str();

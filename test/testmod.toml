@@ -6,19 +6,24 @@ uses = ["ISO_FORTRAN_ENV", ]
 
 parameters = [
   { name = "intpar", type = "integer", value = 2 },
-  { name = "stringpar", type = "string", value = "abcde12345" },
   { name = "floatpar", type = "float", value = 1.234 },
   { name = "floatparexp", type = "float", value = 1E-8 },
   { name = "floatparsq", type = "float", value = "floatpar*floatpar" },
+  { name = "stringpar", type = "string", value = "abcde12345" },
 ]
 
-derivedtypes = [ "testtype",  ]
+derivedtypes = [ "testtype1", "testtype2"  ]
 
-[module.testtype]
+[module.testtype1]
 fields = [
-  { name = "fstr",  type = "string", size = 100 },
+  { name = "fbool",  type = "bool", data = true },
   { name = "ffloat",  type = "float" },
   { name = "fdouble",  type = "double"},
+  { name = "fstr",  type = "string", size = 100 },
+]
+
+[module.testtype2]
+fields = [
   { name = "ffloata",  type = "float", size = 5, data = [ 1, 2.0, 3.456, 4, 5 ] },
   { name = "ffloatapar",  type = "float", size = "intpar" },
   { name = "ffloat2a",  type = "float", size = [3,5], data = [ 
@@ -27,5 +32,5 @@ fields = [
     11,12,13,14,15
    ]},
   { name = "ffloat2apar",  type = "float", size = ["intpar", 5] },
-  { name = "ffloat3dim",  type = "integer", size = [3,3,3] },
+  { name = "fint3dim",  type = "integer", size = [2,3,4] },
 ]

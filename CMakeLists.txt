@@ -24,7 +24,7 @@
 
 cmake_minimum_required (VERSION 3.14 FATAL_ERROR)
 
-project(FortModGen VERSION 0.9.6 LANGUAGES C CXX Fortran)
+project(FortModGen VERSION 1.0.0 LANGUAGES C CXX Fortran)
 
 set (FortModGen_VERSION ${PROJECT_VERSION})
 
@@ -103,6 +103,7 @@ add_subdirectory(app)
 add_subdirectory(src)
 
 if(FORTMODGEN_TEST_ENABLED)
+  include(CTest)
   add_subdirectory(test)
 endif()
 
