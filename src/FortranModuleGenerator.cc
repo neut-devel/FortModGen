@@ -173,27 +173,59 @@ void FortranStringAccessor(fmt::ostream &os, std::string const &dtypename,
                            FieldDescriptor const &fd,
                            ParameterFields const &parameters) {
 
-  os.print(R"(
+  os.print(R"-(
     function get_{0}_{1}() result(out_str)
-      character(len={2}) :: out_str
-      do i = 1, {2}
+      use iso_c_binding
+      implicit none
+
+      character(len=:), allocatable :: out_str
+      integer :: loop_end = 0, i
+
+      do i = {2}, 1, -1 
+          if (.not.(({0}%{1}(i).eq.' ').or.({0}%{1}(i).eq.C_NULL_CHAR))) then
+            loop_end = i
+            exit
+          end if
+      end do
+
+      if (.not.allocated(out_str)) then
+        allocate(character(len=loop_end) :: out_str)
+      end if
+
+      do i = 1, loop_end
           out_str(i:i) = {0}%{1}(i)
       end do
+
     end function get_{0}_{1}
 
     subroutine set_{0}_{1}(in_str)
       use iso_c_binding
+      implicit none
+
       character(kind=C_CHAR,len=*), intent(in) :: in_str
-      integer :: loop_end = {2}
+      integer :: loop_end = 0, i
 
-      if(len(in_str).lt.{2}) loop_end = len(in_str)
+      ! blank out the string (but don't flatten the secret C_NULL_CHAR backstop)
+      {0}%{1}(1:{2}) = ' '
 
+      do i = len(in_str), 1, -1
+        if (.not.((in_str(i:i).eq.' ').or.(in_str(i:i).eq.C_NULL_CHAR))) then
+          loop_end = i
+          exit
+        end if
+      end do
+
+      if (loop_end.gt.{2}) loop_end = {2}
+
+      ! copy the relevant characters
       do i = 1, loop_end
           {0}%{1}(i) = in_str(i:i)
       end do
-      {0}%{1}({2}) = C_NULL_CHAR
+
+      ! put a C_NULL_CHAR after the last copied character
+      {0}%{1}(loop_end+1) = C_NULL_CHAR
     end subroutine set_{0}_{1}
-)",
+)-",
            dtypename, fd.name, fd.get_size(parameters));
 }
 

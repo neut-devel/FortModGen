@@ -14,7 +14,7 @@ void cppwrite() {
   myinst1.fbool = false;
   myinst1.ffloat = 9.8765;
   myinst1.fdouble = 9.876543210;
-  myinst1.set_fstr("string from C++");
+  myinst1.set_fstr("A slightly longer string from C++");
 
   int ctr = 1;
   for (int i = 0; i < 5; ++i) {

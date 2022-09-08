@@ -48,7 +48,7 @@ void cppassert_cpp() {
   CPPAssert(myinst1.fbool, false);
   CPPAssert_float(myinst1.ffloat, 9.8765);
   CPPAssert_double(myinst1.fdouble, 9.876543210);
-  CPPAssert(myinst1.fstr, std::string("string from C++"));
+  CPPAssert(myinst1.fstr, std::string("A slightly longer string from C++"));
 
   int ctr = 1;
   for (int i = 0; i < 5; ++i) {

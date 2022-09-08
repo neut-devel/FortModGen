@@ -131,7 +131,7 @@ subroutine fortassert_cpp()
   
   call assert_float("ASSERT[FAILED] testtype1%ffloat", testtype1%ffloat, 9.8765e0)
   call assert_double("ASSERT[FAILED] testtype1%fdouble", testtype1%fdouble, 9.876543210d0)
-  call assert_str("ASSERT[FAILED] testtype1%fstr", get_testtype1_fstr(), "string from C++")
+  call assert_str("ASSERT[FAILED] testtype1%fstr", get_testtype1_fstr(), "A slightly longer string from C++")
 
   ctr = 1
   do i = 1, 5
