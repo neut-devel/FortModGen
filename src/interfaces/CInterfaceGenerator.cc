@@ -104,7 +104,7 @@ void ModuleStructsDerivedTypeField(fmt::ostream &os,
           << "\", is too large to fit in {0}::{1}, truncated to {2} characters."
           << std::endl;
     }}
-    std::memcpy({1}, in_str.c_str(), std::min(size_t({2}), in_str.size()));
+    std::memcpy({1}, in_str.c_str(), std::min(size_t({2}), in_str.size()+1));
   }}
 #endif
 )",
