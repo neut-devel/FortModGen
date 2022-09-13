@@ -86,14 +86,14 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 include(CPM)
 
-CPMFindPackage(
+CPMAddPackage(
   NAME toml11
   GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
   VERSION 3.7.1
   GIT_TAG v3.7.1
 )
 
-CPMFindPackage(
+CPMAddPackage(
     NAME fmt
     GIT_TAG 8.1.1
     GITHUB_REPOSITORY fmtlib/fmt
