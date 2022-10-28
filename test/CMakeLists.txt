@@ -12,5 +12,9 @@ target_link_libraries(ftest testmod)
 add_executable(cpptest cpptest.cc)
 target_link_libraries(cpptest testmod fmt::fmt)
 
+add_executable(full_precision_parameter_test full_precision_parameter_test.cc)
+target_link_libraries(full_precision_parameter_test testmod fmt::fmt)
+
 add_test(NAME ftest COMMAND ftest)
 add_test(NAME cpptest COMMAND cpptest)
+add_test(NAME full_precision_parameter_test COMMAND full_precision_parameter_test)

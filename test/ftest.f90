@@ -72,8 +72,8 @@ subroutine fortassert_fort()
   helper_bool = .true.
   call assert_logical("ASSERT[FAILED] testtype1%fbool", testtype1%fbool, helper_bool)
   
-  call assert_float("ASSERT[FAILED] testtype1%ffloat", testtype1%ffloat, 1.2345e0)
-  call assert_double("ASSERT[FAILED] testtype1%fdouble", testtype1%fdouble, 1.234567891d0)
+  call assert_float("ASSERT[FAILED] testtype1%ffloat", testtype1%ffloat, 1.2345678e0)
+  call assert_double("ASSERT[FAILED] testtype1%fdouble", testtype1%fdouble, 1.234567891123456d0)
   call assert_str("ASSERT[FAILED] testtype1%fstr", get_testtype1_fstr(), "string from fortran")
 
   ctr = 1
@@ -129,8 +129,8 @@ subroutine fortassert_cpp()
   helper_bool = .false.
   call assert_logical("ASSERT[FAILED] testtype1%fbool", testtype1%fbool, helper_bool)
   
-  call assert_float("ASSERT[FAILED] testtype1%ffloat", testtype1%ffloat, 9.8765e0)
-  call assert_double("ASSERT[FAILED] testtype1%fdouble", testtype1%fdouble, 9.876543210d0)
+  call assert_float("ASSERT[FAILED] testtype1%ffloat", testtype1%ffloat, 8.7654321e0)
+  call assert_double("ASSERT[FAILED] testtype1%fdouble", testtype1%fdouble, 6.543210987654321d0)
   call assert_str("ASSERT[FAILED] testtype1%fstr", get_testtype1_fstr(), "A slightly longer string from C++")
 
   ctr = 1

@@ -49,7 +49,14 @@ from<ParameterFieldDescriptor>::from_toml(const value &v) {
   if (val.is_string()) {
     f.value = get<std::string>(val);
   } else if (val.is_floating()) {
-    f.value = fmt::format("{:g}", get<double>(val));
+    if (f.type == FieldType::kFloat) {
+      f.value = fmt::format("{:.7E}", get<double>(val));
+
+    } else if (f.type == FieldType::kDouble) {
+      f.value = fmt::format("{:.15E}", get<double>(val));
+    } else {
+      f.value = fmt::format("{:g}", get<double>(val));
+    }
   } else if (val.is_integer()) {
     f.value = std::to_string(get<int>(val));
   } else if (val.is_boolean()) {

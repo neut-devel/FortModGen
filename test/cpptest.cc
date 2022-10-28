@@ -46,8 +46,8 @@ void cppassert_cpp() {
   auto myinst2 = FortMod::testtype2IF::copy();
 
   CPPAssert(myinst1.fbool, false);
-  CPPAssert_float(myinst1.ffloat, 9.8765);
-  CPPAssert_double(myinst1.fdouble, 9.876543210);
+  CPPAssert_float(myinst1.ffloat, 8.7654321);
+  CPPAssert_double(myinst1.fdouble, 6.543210987654321);
   CPPAssert(myinst1.fstr, std::string("A slightly longer string from C++"));
 
   int ctr = 1;
@@ -90,8 +90,8 @@ void cppassert_fort() {
   auto myinst2 = FortMod::testtype2IF::copy();
 
   CPPAssert(myinst1.fbool, true);
-  CPPAssert_float(myinst1.ffloat, 1.2345);
-  CPPAssert_double(myinst1.fdouble, 1.234567891);
+  CPPAssert_float(myinst1.ffloat, 1.2345678);
+  CPPAssert_double(myinst1.fdouble, 1.234567891123456);
   CPPAssert(myinst1.fstr, std::string("string from fortran"));
 
   int ctr = 1;

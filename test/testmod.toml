@@ -6,7 +6,7 @@ uses = ["ISO_FORTRAN_ENV", ]
 
 parameters = [
   { name = "intpar", type = "integer", value = 2 },
-  { name = "floatpar", type = "float", value = 1.234 },
+  { name = "floatpar", type = "float", value = 1.2345678 },
   { name = "floatparexp", type = "float", value = 1E-8 },
   { name = "floatparsq", type = "float", value = "floatpar*floatpar" },
   { name = "stringpar", type = "string", value = "abcde12345" },

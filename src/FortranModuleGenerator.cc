@@ -102,7 +102,7 @@ std::string DataElementToString(FieldType ft,
     if (d.index() == 0) { // int
       return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return fmt::format("{:g}", float(std::get<1>(d)));
+      return fmt::format("{:.8E}", float(std::get<1>(d)));
     } else if (d.index() == 2) { // string
       return fmt::format("{}", std::get<2>(d));
     }
@@ -110,7 +110,7 @@ std::string DataElementToString(FieldType ft,
     if (d.index() == 0) { // int
       return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return fmt::format("{:g}", std::get<1>(d));
+      return fmt::format("{:.16E}", std::get<1>(d));
     } else if (d.index() == 2) { // string
       return fmt::format("{}", std::get<2>(d));
     }

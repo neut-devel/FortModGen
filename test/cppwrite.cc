@@ -12,8 +12,8 @@ void cppwrite() {
   auto myinst2 = FortMod::testtype2IF::copy();
 
   myinst1.fbool = false;
-  myinst1.ffloat = 9.8765;
-  myinst1.fdouble = 9.876543210;
+  myinst1.ffloat = 8.7654321;
+  myinst1.fdouble = 6.543210987654321;
   myinst1.set_fstr("A slightly longer string from C++");
 
   int ctr = 1;

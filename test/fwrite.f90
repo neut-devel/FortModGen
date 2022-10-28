@@ -9,8 +9,8 @@ module fwrite_mod
       integer :: i, j, k, ctr
 
       testtype1%fbool = .true.
-      testtype1%ffloat = 1.2345e0
-      testtype1%fdouble = 1.234567891d0
+      testtype1%ffloat = 1.2345678e0
+      testtype1%fdouble = 1.234567891123456d0
       call set_testtype1_fstr("string from fortran")
 
       ctr = 1
