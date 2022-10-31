@@ -43,10 +43,9 @@ void ModuleStructsParameters(fmt::ostream &os,
       os.print("//{}\n", comment);
     }
     if (p.is_string()) {
-      os.print("static char const * {} = \"{}\";\n", p.name, p.value);
+      os.print("#define {} (\"{}\")\n", p.name, p.value);
     } else {
-      os.print("static {} const {} = {};\n", CFieldTypes[p.type], p.name,
-               p.value);
+      os.print("#define {} ({})\n", p.name, p.value);
     }
     os.print("\n");
   }
