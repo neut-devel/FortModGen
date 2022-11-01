@@ -19,7 +19,7 @@ std::map<FieldType, std::string> FortranFieldKinds = {
 
 std::map<FieldType, std::string> FortranPrintFormatSpecifier = {
     {FieldType::kInteger, "I3X"},      {FieldType::kString, "999A"},
-    {FieldType::kCharacter, "A"},     {FieldType::kFloat, "ES10.3E1X"},
+    {FieldType::kCharacter, "A"},      {FieldType::kFloat, "ES10.3E1X"},
     {FieldType::kDouble, "ES10.3E1X"}, {FieldType::kBool, "LX"},
 };
 
@@ -30,6 +30,18 @@ void FortranFileHeader(fmt::ostream &os, std::string const &modname,
     os.print("  use {}\n", u);
   }
   os.print("\n");
+}
+
+std::string FortranLiteralEtoD(FieldType const &ft, std::string str) {
+  if (ft == FieldType::kDouble) { // when emitting fortran literals
+                                  // swap E for D for double precision
+                                  // types
+    size_t Epos = str.find_first_of("Ee");
+    if (Epos != std::string::npos) {
+      str[Epos] = 'D';
+    }
+  }
+  return str;
 }
 
 void FortranModuleParameters(fmt::ostream &os,
@@ -44,9 +56,10 @@ void FortranModuleParameters(fmt::ostream &os,
                FortranFieldTypes[p.type], FortranFieldKinds[p.type], p.name,
                p.value);
     } else {
+
       os.print("  {}(kind={}), parameter :: {} = {}\n",
                FortranFieldTypes[p.type], FortranFieldKinds[p.type], p.name,
-               p.value);
+               FortranLiteralEtoD(p.type, p.value));
     }
   }
   os.print("\n");
@@ -102,7 +115,7 @@ std::string DataElementToString(FieldType ft,
     if (d.index() == 0) { // int
       return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return fmt::format("{:.8E}", float(std::get<1>(d)));
+      return fmt::format("{:.7E}", float(std::get<1>(d)));
     } else if (d.index() == 2) { // string
       return fmt::format("{}", std::get<2>(d));
     }
@@ -110,7 +123,7 @@ std::string DataElementToString(FieldType ft,
     if (d.index() == 0) { // int
       return fmt::format("{}", std::get<0>(d));
     } else if (d.index() == 1) { // double
-      return fmt::format("{:.16E}", std::get<1>(d));
+      return FortranLiteralEtoD(ft, fmt::format("{:.15E}", std::get<1>(d)));
     } else if (d.index() == 2) { // string
       return fmt::format("{}", std::get<2>(d));
     }

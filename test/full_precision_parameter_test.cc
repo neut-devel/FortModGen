@@ -28,4 +28,5 @@
 
 int main() {
   CPPAssert_float(floatpar,1.2345678);
+  CPPAssert_double(doublepar,1.234567891011121);
 }

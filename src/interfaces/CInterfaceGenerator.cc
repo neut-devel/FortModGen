@@ -43,10 +43,15 @@ void ModuleStructsParameters(fmt::ostream &os,
       os.print("//{}\n", comment);
     }
     if (p.is_string()) {
-      os.print("#define {} (\"{}\")\n", p.name, p.value);
+      os.print("static char const * {} = \"{}\";\n", p.name, p.value);
+    } else if (p.is_numeric && (p.type == FieldType::kFloat)) {
+      os.print("static {} const {} = {}f;\n", CFieldTypes[p.type], p.name,
+               p.value);
     } else {
-      os.print("#define {} ({})\n", p.name, p.value);
+      os.print("static {} const {} = {};\n", CFieldTypes[p.type], p.name,
+               p.value);
     }
+
     os.print("\n");
   }
 }

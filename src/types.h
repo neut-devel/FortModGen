@@ -16,6 +16,7 @@ enum class AttributeType { kConfigurable };
 struct ParameterFieldDescriptor {
   std::string name;
   FieldType type;
+  bool is_numeric;
   std::string comment;
   std::string value;
 

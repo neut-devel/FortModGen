@@ -1,6 +1,7 @@
 #include "types.h"
 
 #include "fmt/core.h"
+#include "fmt/format.h"
 
 #include <iostream>
 
@@ -46,24 +47,43 @@ from<ParameterFieldDescriptor>::from_toml(const value &v) {
 
   auto val = find(v, "value");
 
-  if (val.is_string()) {
-    f.value = get<std::string>(val);
-  } else if (val.is_floating()) {
-    if (f.type == FieldType::kFloat) {
-      f.value = fmt::format("{:.7E}", get<double>(val));
+  try {
+    if (val.is_string()) {
+      f.is_numeric = false;
+      f.value = get<std::string>(val);
+    } else if (val.is_floating()) {
+      f.is_numeric = true;
+      if (f.type == FieldType::kFloat) {
+        f.value = fmt::format("{:.7E}", get<double>(val));
 
-    } else if (f.type == FieldType::kDouble) {
-      f.value = fmt::format("{:.15E}", get<double>(val));
+      } else if (f.type == FieldType::kDouble) {
+        f.value = fmt::format("{:.15E}", get<double>(val));
+      } else {
+        f.value = fmt::format("{:g}", get<double>(val));
+      }
+    } else if (val.is_integer()) {
+      f.is_numeric = true;
+      f.value = std::to_string(get<int>(val));
+    } else if (val.is_boolean()) {
+      f.is_numeric = false;
+      f.value = val.as_boolean() ? "true" : "false";
     } else {
-      f.value = fmt::format("{:g}", get<double>(val));
+      std::cout << "[ERROR]: Failed to parse parameter value as known type: "
+                << val.as_string() << std::endl;
+      abort();
     }
-  } else if (val.is_integer()) {
-    f.value = std::to_string(get<int>(val));
-  } else if (val.is_boolean()) {
-    f.value = val.as_boolean() ? "true" : "false";
-  } else {
-    std::cout << "[ERROR]: Failed to parse parameter value as known type: "
-              << val.as_string() << std::endl;
+  } catch (toml::exception e) {
+    std::cout << "[ERROR]: Failed to parse parameter value at "
+              << e.location().line_str() << std::endl;
+    abort();
+  } catch (fmt::format_error e) {
+    std::cout << "[ERROR]: Failed to format value: " << e.what() << std::endl;
+    abort();
+  } catch (...) {
+    std::cout
+        << "[ERROR]: Unspecified exception when parsing parameter value. "
+           "Please report this message and your input file to the developer."
+        << std::endl;
     abort();
   }
 
