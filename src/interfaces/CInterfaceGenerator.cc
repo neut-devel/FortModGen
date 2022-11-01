@@ -35,6 +35,13 @@ extern "C" {{
 )");
 }
 
+std::string to_upper(std::string str){
+  for(size_t i = 0; i < str.length(); ++i){
+    str[i] = std::toupper(str[i]);
+  }
+  return str;
+}
+
 void ModuleStructsParameters(fmt::ostream &os,
                              ParameterFields const &ParameterFieldDescriptors) {
   for (auto const &p : ParameterFieldDescriptors) {
@@ -43,9 +50,9 @@ void ModuleStructsParameters(fmt::ostream &os,
       os.print("//{}\n", comment);
     }
     if (p.is_string()) {
-      os.print("#define {} (\"{}\")\n", p.name, p.value);
+      os.print("#define {} (\"{}\")\n", to_upper(p.name), p.value);
     } else {
-      os.print("#define {} ({})\n", p.name, p.value);
+      os.print("#define {} ({})\n", to_upper(p.name), p.value);
     }
     os.print("\n");
   }
