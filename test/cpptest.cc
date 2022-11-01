@@ -56,7 +56,7 @@ void cppassert_cpp() {
   }
 
   ctr = 10;
-  for (int i = 0; i < INTPAR; ++i) {
+  for (int i = 0; i < intpar; ++i) {
     CPPAssert_float(myinst2.ffloatapar[i], ctr--);
   }
 
@@ -69,7 +69,7 @@ void cppassert_cpp() {
 
   ctr = 1000;
   for (int i = 0; i < 5; ++i) {
-    for (int j = 0; j < INTPAR; ++j) {
+    for (int j = 0; j < intpar; ++j) {
       CPPAssert_float(myinst2.ffloat2apar[i][j], ctr--);
     }
   }
@@ -100,7 +100,7 @@ void cppassert_fort() {
   }
 
   ctr = 10;
-  for (int i = 0; i < INTPAR; ++i) {
+  for (int i = 0; i < intpar; ++i) {
     CPPAssert_float(myinst2.ffloatapar[i], ctr++);
   }
 
@@ -113,7 +113,7 @@ void cppassert_fort() {
 
   ctr = 1000;
   for (int i = 0; i < 5; ++i) {
-    for (int j = 0; j < INTPAR; ++j) {
+    for (int j = 0; j < intpar; ++j) {
       CPPAssert_float(myinst2.ffloat2apar[i][j], ctr++);
     }
   }

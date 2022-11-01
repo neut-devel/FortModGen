@@ -22,7 +22,7 @@ void cppwrite() {
   }
 
   ctr = 10;
-  for (int i = 0; i < INTPAR; ++i) {
+  for (int i = 0; i < intpar; ++i) {
     myinst2.ffloatapar[i] = ctr--;
   }
 
@@ -35,7 +35,7 @@ void cppwrite() {
 
   ctr = 1000;
   for (int i = 0; i < 5; ++i) {
-    for (int j = 0; j < INTPAR; ++j) {
+    for (int j = 0; j < intpar; ++j) {
       myinst2.ffloat2apar[i][j] = ctr--;
     }
   }
