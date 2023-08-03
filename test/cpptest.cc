@@ -18,6 +18,17 @@ void fortwrite();
     abort();                                                                   \
   }
 
+#define CPPAssert_str(field, Expected)                                         \
+  if ((field != Expected) || (field.size() != Expected.size())) {              \
+    std::cout                                                                  \
+        << fmt::format(                                                        \
+               "ASSERT[FAILED]: {}:{}\n\t{}, Read: {}(s:{}) != {}(s:{}).",     \
+               __FILE__, __LINE__, #field, field, field.size(), Expected,      \
+               Expected.size())                                                \
+        << std::endl;                                                          \
+    abort();                                                                   \
+  }
+
 #define CPPAssert_float(field, Expected)                                       \
   if (std::fabs(field - float(Expected)) > 1E-7) {                             \
     std::cout << fmt::format(                                                  \
@@ -48,7 +59,7 @@ void cppassert_cpp() {
   CPPAssert(myinst1.fbool, false);
   CPPAssert_float(myinst1.ffloat, 8.7654321);
   CPPAssert_double(myinst1.fdouble, 6.543210987654321);
-  CPPAssert(myinst1.fstr, std::string("A slightly longer string from C++"));
+  CPPAssert_str(myinst1.get_fstr(), std::string("A slightly longer string from C++"));
 
   int ctr = 1;
   for (int i = 0; i < 5; ++i) {
@@ -92,7 +103,7 @@ void cppassert_fort() {
   CPPAssert(myinst1.fbool, true);
   CPPAssert_float(myinst1.ffloat, 1.2345678);
   CPPAssert_double(myinst1.fdouble, 1.234567891123456);
-  CPPAssert(myinst1.fstr, std::string("string from fortran"));
+  CPPAssert_str(myinst1.get_fstr(), std::string("string from fortran"));
 
   int ctr = 1;
   for (int i = 0; i < 5; ++i) {

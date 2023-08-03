@@ -100,7 +100,7 @@ void ModuleStructsDerivedTypeField(fmt::ostream &os,
   if (fd.is_string()) {
     os.print(R"(
 #ifdef __cplusplus
-  std::string get_{1}() const {{ return std::string({1}, {2}); }}
+  std::string get_{1}() const {{ return std::string({1}); }}
   void set_{1}(std::string in_str) {{
     if (in_str.size() > {2}) {{
       std::cout
