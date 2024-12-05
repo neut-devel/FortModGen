@@ -100,15 +100,25 @@ void ModuleStructsDerivedTypeField(fmt::ostream &os,
   if (fd.is_string()) {
     os.print(R"(
 #ifdef __cplusplus
-  std::string get_{1}() const {{ return std::string({1}); }}
+  std::string get_{1}() const {{
+    size_t first_null = 0;
+    while({1}[first_null] != '\0'){{
+      first_null++;
+      if(first_null == {2}){{
+        break;
+      }}
+    }}
+    return std::string({1}, first_null); 
+  }}
   void set_{1}(std::string in_str) {{
+    std::memset({1},'\0',{2});
     if (in_str.size() > {2}) {{
       std::cout
           << "[WARN]: String: \"" << in_str
           << "\", is too large to fit in {0}::{1}, truncated to {2} characters."
           << std::endl;
     }}
-    std::memcpy({1}, in_str.c_str(), std::min(size_t({2}), in_str.size()+1));
+    std::memcpy({1}, in_str.c_str(), std::min(size_t({2}), in_str.size()));
   }}
 #endif
 )",
