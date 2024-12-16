@@ -73,8 +73,8 @@ from<ParameterFieldDescriptor>::from_toml(const value &v) {
       abort();
     }
   } catch (toml::exception e) {
-    std::cout << "[ERROR]: Failed to parse parameter value at "
-              << e.location().line_str() << std::endl;
+    std::cout << "[ERROR]: Failed to parse parameter value: " << e.what()
+              << std::endl;
     abort();
   } catch (fmt::format_error e) {
     std::cout << "[ERROR]: Failed to format value: " << e.what() << std::endl;

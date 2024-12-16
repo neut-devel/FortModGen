@@ -14,6 +14,7 @@ void Usage(char const *argv[]) {
 }
 
 std::string fin, outstub;
+bool say_modname = false;
 
 void ParseOpts(int argc, char const *argv[]) {
   for (int opt_it = 1; opt_it < argc; opt_it++) {
@@ -21,7 +22,14 @@ void ParseOpts(int argc, char const *argv[]) {
     if ((arg == "-h") || (arg == "-?") || (arg == "--help")) {
       Usage(argv);
       exit(0);
-    } else if ((opt_it + 1) < argc) {
+    }
+
+    if ((arg == "-m") || (arg == "--modname")) {
+      say_modname = true;
+      continue;
+    }
+
+    if ((opt_it + 1) < argc) {
       if (arg == "-i") {
         fin = argv[++opt_it];
       } else if (arg == "-o") {
@@ -29,8 +37,8 @@ void ParseOpts(int argc, char const *argv[]) {
       }
     }
   }
-  if (!fin.size() || !outstub.length()) {
-    std::cerr << "[ERROR]: Not all required options recieved: (-i, -o)."
+  if (!fin.size() || (!outstub.length() && !say_modname)) {
+    std::cerr << "[ERROR]: Not all required options recieved: (-i, -o/-m)."
               << std::endl;
     Usage(argv);
     exit(1);
@@ -51,6 +59,12 @@ int main(int argc, char const *argv[]) {
   }
 
   std::string modname = toml::find<std::string>(fmod_descriptor, "name");
+
+  if (say_modname) {
+    std::cout << modname << std::endl;
+    return 0;
+  }
+
   auto dtypenames =
       toml::find<std::vector<std::string>>(fmod_descriptor, "derivedtypes");
 

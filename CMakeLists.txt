@@ -24,7 +24,7 @@
 
 cmake_minimum_required (VERSION 3.14 FATAL_ERROR)
 
-project(FortModGen VERSION 1.4.0 LANGUAGES C CXX Fortran)
+project(FortModGen VERSION 1.6.0 LANGUAGES C CXX Fortran)
 
 set (FortModGen_VERSION ${PROJECT_VERSION})
 
@@ -84,18 +84,25 @@ IF("${isSystemDir}" STREQUAL "-1")
    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
-include(CPM)
+file(
+  DOWNLOAD
+  https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.2/CPM.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake
+)
+
+include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
 
 CPMAddPackage(
   NAME toml11
   GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
-  VERSION 3.7.1
-  GIT_TAG v3.7.1
+  VERSION 4.2.0
+  GIT_TAG v4.2.0
 )
 
 CPMAddPackage(
     NAME fmt
-    GIT_TAG 8.1.1
+    VERSION 11.0.2
+    GIT_TAG 11.0.2
     GITHUB_REPOSITORY fmtlib/fmt
 )
 
