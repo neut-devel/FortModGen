@@ -97,6 +97,10 @@ CPMAddPackage(
   GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
   VERSION 4.2.0
   GIT_TAG v4.2.0
+  OPTIONS "TOML11_INSTALL ON"
+        "TOML11_BUILD_EXAMPLES OFF"
+        "TOML11_BUILD_TESTS OFF"
+        "TOML11_BUILD_TOML_TESTS OFF"
 )
 
 CPMAddPackage(

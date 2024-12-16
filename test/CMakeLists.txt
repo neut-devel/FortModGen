@@ -3,6 +3,12 @@ include(FortModGen)
 FortModGen(MOD_DESCRIPTOR_FILE ${CMAKE_CURRENT_SOURCE_DIR}/testmod.toml
            MOD_OUTPUT_STUB testmod)
 
+FortModName(MOD_DESCRIPTOR_FILE ${CMAKE_CURRENT_SOURCE_DIR}/testmod.toml OUTPUT_VARIABLE MODNAME)
+
+if(NOT "${MODNAME}" STREQUAL "testmod")
+  message(FATAL_ERROR "Failed to correctly determine module name from testmod.toml, got ${MODNAME} instead of \"testmod\"")
+endif()
+
 add_library(testmod STATIC cppwrite.cc fwrite.f90 testmod.f90)
 target_include_directories(testmod PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
