@@ -24,7 +24,7 @@
 
 cmake_minimum_required (VERSION 3.14 FATAL_ERROR)
 
-project(FortModGen VERSION 1.6.1 LANGUAGES C CXX Fortran)
+project(FortModGen VERSION 1.6.2 LANGUAGES C CXX Fortran)
 
 set (FortModGen_VERSION ${PROJECT_VERSION})
 
@@ -84,34 +84,23 @@ IF("${isSystemDir}" STREQUAL "-1")
    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
-file(
-  DOWNLOAD
-  https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.2/CPM.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake
-)
+include(FetchContent)
 
-include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
-
-CPMAddPackage(
-  NAME toml11
-  GITHUB_REPOSITORY ToruNiina/toml11
-  VERSION 4.4.0
-  GIT_TAG v4.4.0
-  OPTIONS "TOML11_INSTALL ON"
-        "TOML11_BUILD_EXAMPLES OFF"
-        "TOML11_BUILD_TESTS OFF"
-        "TOML11_BUILD_TOML_TESTS OFF"
+FetchContent_Declare(
+  toml11
+  GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
+  GIT_TAG        v4.4.0
 )
+FetchContent_MakeAvailable(toml11)
 
-CPMFindPackage(
-    NAME fmt
-    VERSION 10.2.1
-    GIT_TAG 10.2.1
-    GITHUB_REPOSITORY fmtlib/fmt
-      OPTIONS
-          "FMT_INSTALL ON"
-          "BUILD_SHARED_LIBS ON"
+
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG        10.2.1
 )
+SET(BUILD_SHARED_LIBS ON)
+FetchContent_MakeAvailable(fmt)
 
 add_subdirectory(app)
 add_subdirectory(src)
