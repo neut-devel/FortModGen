@@ -1,7 +1,7 @@
 ################################################################################
 # MIT License
 
-# Copyright (c) 2022 FortModGen
+# Copyright (c) 2025 FortModGen
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,24 +24,24 @@
 
 cmake_minimum_required (VERSION 3.14 FATAL_ERROR)
 
-project(FortModGen VERSION 1.6.0 LANGUAGES C CXX Fortran)
+project(FortModGen VERSION 1.6.1 LANGUAGES C CXX Fortran)
 
 set (FortModGen_VERSION ${PROJECT_VERSION})
 
 set(CMAKE_CXX_STANDARD 17)
 
 #Use the compilers found in the path
-find_program(CMAKE_C_COMPILER 
-  NAMES $ENV{CC} gcc 
-  PATHS ENV 
+find_program(CMAKE_C_COMPILER
+  NAMES $ENV{CC} gcc
+  PATHS ENV
   PATH NO_DEFAULT_PATH)
-find_program(CMAKE_CXX_COMPILER 
-  NAMES $ENV{CXX} g++ 
-  PATHS ENV 
+find_program(CMAKE_CXX_COMPILER
+  NAMES $ENV{CXX} g++
+  PATHS ENV
   PATH NO_DEFAULT_PATH)
-find_program(CMAKE_FORTRAN_COMPILER 
-  NAMES $ENV{FC} gfortran 
-  PATHS ENV 
+find_program(CMAKE_FORTRAN_COMPILER
+  NAMES $ENV{FC} gfortran
+  PATHS ENV
   PATH NO_DEFAULT_PATH)
 
 #Changes default install path to be a subdirectory of the build dir.
@@ -94,20 +94,23 @@ include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
 
 CPMAddPackage(
   NAME toml11
-  GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
-  VERSION 4.2.0
-  GIT_TAG v4.2.0
+  GITHUB_REPOSITORY ToruNiina/toml11
+  VERSION 4.4.0
+  GIT_TAG v4.4.0
   OPTIONS "TOML11_INSTALL ON"
         "TOML11_BUILD_EXAMPLES OFF"
         "TOML11_BUILD_TESTS OFF"
         "TOML11_BUILD_TOML_TESTS OFF"
 )
 
-CPMAddPackage(
+CPMFindPackage(
     NAME fmt
-    VERSION 11.0.2
-    GIT_TAG 11.0.2
+    VERSION 10.2.1
+    GIT_TAG 10.2.1
     GITHUB_REPOSITORY fmtlib/fmt
+      OPTIONS
+          "FMT_INSTALL ON"
+          "BUILD_SHARED_LIBS ON"
 )
 
 add_subdirectory(app)
@@ -123,14 +126,14 @@ include(cmake/Modules/FortModGen.cmake)
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FortModGenConfig.cmake.in FortModGenConfig.cmake
-  INSTALL_DESTINATION 
+  INSTALL_DESTINATION
     /this/is/ignored/for/some/reason/thanks/kitware
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
-install(FILES 
-    ${CMAKE_CURRENT_BINARY_DIR}/FortModGenConfig.cmake 
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FortModGen.cmake 
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/FortModGenConfig.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FortModGen.cmake
   DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
 
 write_basic_package_version_file(${CMAKE_INSTALL_PREFIX}/cmake/FortModGenConfig.cmake
