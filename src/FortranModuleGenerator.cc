@@ -18,9 +18,9 @@ std::map<FieldType, std::string> FortranFieldKinds = {
 };
 
 std::map<FieldType, std::string> FortranPrintFormatSpecifier = {
-    {FieldType::kInteger, "I3X"},      {FieldType::kString, "999A"},
-    {FieldType::kCharacter, "A"},      {FieldType::kFloat, "ES10.3E1X"},
-    {FieldType::kDouble, "ES10.3E1X"}, {FieldType::kBool, "LX"},
+    {FieldType::kInteger, "I3,1X"},      {FieldType::kString, "999A"},
+    {FieldType::kCharacter, "A"},      {FieldType::kFloat, "ES10.3E1,1X"},
+    {FieldType::kDouble, "ES10.3E1,1X"}, {FieldType::kBool, "L,1X"},
 };
 
 void FortranFileHeader(fmt::ostream &os, std::string const &modname,
@@ -194,7 +194,7 @@ void FortranStringAccessor(fmt::ostream &os, std::string const &dtypename,
       character(len=:), allocatable :: out_str
       integer :: loop_end = 0, i
 
-      do i = {2}, 1, -1 
+      do i = {2}, 1, -1
           if (.not.(({0}%{1}(i).eq.' ').or.({0}%{1}(i).eq.C_NULL_CHAR))) then
             loop_end = i
             exit
